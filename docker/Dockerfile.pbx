@@ -1,0 +1,22 @@
+ARG ASTERISK_IMAGE=andrius/asterisk:22.11.0_debian-trixie@sha256:27b811fe5a7271d83f0326efba33251f8770280d30eab576698ee87f877fc8c9
+FROM ${ASTERISK_IMAGE} AS module
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential pkg-config libcurl4-openssl-dev libssl-dev libxml2-dev uuid-dev libjansson-dev libedit-dev libsqlite3-dev curl ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+RUN curl -fsSL https://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-22.11.0.tar.gz -o asterisk.tar.gz && echo '3bd5ee040509a3d3cd9b1ba9520c18e6ec0a7e7981ca68c457dcd36ba3c54d94  asterisk.tar.gz' | sha256sum -c - && tar -xzf asterisk.tar.gz
+WORKDIR /build/asterisk-22.11.0
+COPY asterisk/res_sip_gateway.c res/res_sip_gateway.c
+RUN ./configure --with-pjproject-bundled --with-jansson-bundled && make menuselect.makeopts && make -j2 include/asterisk/buildopts.h
+RUN make -j2 res
+FROM ${ASTERISK_IMAGE}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv supervisor libcurl4t64 ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY backend/requirements.txt /app/backend/requirements.txt
+RUN python3 -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir -r /app/backend/requirements.txt
+COPY backend /app/backend
+COPY --from=module /build/asterisk-22.11.0/res/res_sip_gateway.so /usr/lib/asterisk/modules/
+COPY docker/supervisord.conf /etc/supervisor/conf.d/gateway.conf
+COPY docker/entrypoint.py /app/entrypoint.py
+WORKDIR /app
+ENV PBX_MANAGED=1 DATA_DIR=/data
+ENTRYPOINT ["/opt/venv/bin/python","/app/entrypoint.py"]

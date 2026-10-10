@@ -1,0 +1,11 @@
+.env
+certs/
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+frontend/dist/
+*.sqlite3*
+artifacts/
+test-results/
+playwright-report/
