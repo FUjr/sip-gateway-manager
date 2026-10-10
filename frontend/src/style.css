@@ -42,6 +42,11 @@ header > button,
   color: white;
   border-color: #0866d9;
 }
+header > button:hover,
+.actions > button:first-child:hover,
+.login button:hover {
+  background: #0756b7;
+}
 .layout {
   display: grid;
   grid-template-columns: 250px 1fr;
@@ -249,7 +254,12 @@ textarea {
   width: 100%;
 }
 @media (max-width: 850px) {
-  .layout {
+  header > button:hover,
+.actions > button:first-child:hover,
+.login button:hover {
+  background: #0756b7;
+}
+.layout {
     grid-template-columns: 1fr;
   }
   aside {
