@@ -72,7 +72,7 @@ set `WEB_TEST_URL` for another isolated stack. The real SIP test runs from the r
 `SIP_TEST_PORT=15061 WEB_TEST_URL=https://localhost:28443 .venv/bin/python tests/protocol.py`.
 It requires a trusted test certificate for `sip.test` and creates test accounts/routes, so run it
 only against a disposable stack. It covers TLS registration, digest authentication, internal/group
-voice setup, bidirectional SMS, per-recipient offline recovery and stable-ID deduplication.
+voice setup and bidirectional internal RTP, bidirectional SMS, per-recipient offline recovery and stable-ID deduplication.
 
 QModem target builds and service/import tests are separate from physical acceptance. Two real
 modems with concurrent cellular calls, PCM traffic, AT/ADB recovery and SMS sends still require DUT

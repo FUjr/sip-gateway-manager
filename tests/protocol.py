@@ -6,6 +6,8 @@ from pathlib import Path
 import re
 import secrets
 import ssl
+import socket
+import struct
 import time
 import httpx
 
@@ -16,7 +18,9 @@ WEB=os.getenv('WEB_TEST_URL','https://localhost:28443')
 
 class SIP:
     def __init__(self,username):
-        self.username=username;self.cseq=0;self.pending={};self.messages=[];self.calls=[]
+        self.username=username;self.cseq=0;self.pending={};self.messages=[];self.calls=[];self.offers=[];self.ends=[]
+        self.udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);self.udp.bind(('0.0.0.0',0));self.udp.setblocking(False)
+        self.audio_port=self.udp.getsockname()[1]
     async def connect(self):
         context=ssl.create_default_context(cafile='certs/fullchain.pem')
         self.reader,self.writer=await asyncio.open_connection(HOST,PORT,ssl=context,server_hostname='sip.test')
@@ -37,11 +41,12 @@ class SIP:
                     if future and not future.done() and int(lines[0].split()[1])>=200:future.set_result((int(lines[0].split()[1]),headers,body))
                 else:
                     method=lines[0].split()[0]
+                    if method in ('BYE','CANCEL'):self.ends.append(headers['call-id'])
                     if method=='MESSAGE':self.messages.append((headers,body.decode()))
-                    if method=='INVITE':self.calls.append(headers)
+                    if method=='INVITE':self.calls.append(headers);self.offers.append(body.decode())
                     payload=b''
                     if method=='INVITE':
-                        payload=b'v=0\r\no=test 1 1 IN IP4 127.0.0.1\r\ns=test\r\nc=IN IP4 127.0.0.1\r\nt=0 0\r\nm=audio 36000 RTP/AVP 8 0\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:0 PCMU/8000\r\na=sendrecv\r\n'
+                        payload=f'v=0\r\no=test 1 1 IN IP4 127.0.0.1\r\ns=test\r\nc=IN IP4 127.0.0.1\r\nt=0 0\r\nm=audio {self.audio_port} RTP/AVP 8 0\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:0 PCMU/8000\r\na=sendrecv\r\n'.encode()
                         if 'tag=' not in headers['to']:headers['to']+=';tag='+secrets.token_hex(8)
                     response='SIP/2.0 200 OK\r\n'+''.join(f'{name}: {headers[name.lower()]}\r\n' for name in ['Via','From','To','Call-ID','CSeq'])+(f'Contact: <sips:{self.username}@127.0.0.1:{self.writer.get_extra_info("sockname")[1]};transport=tls>\r\nContent-Type: application/sdp\r\n' if payload else '')+f'Content-Length: {len(payload)}\r\n\r\n'
                     self.writer.write(response.encode()+payload);await self.writer.drain()
@@ -79,8 +84,8 @@ class SIP:
             if 'opaque' in values:auth+=f', opaque="{values["opaque"]}"'
             result=await transmit(auth+'\r\n')
         return result
-    async def call(self,recipient):
-        sdp='v=0\r\no=test 1 1 IN IP4 127.0.0.1\r\ns=test\r\nc=IN IP4 127.0.0.1\r\nt=0 0\r\nm=audio 36002 RTP/AVP 8 0\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:0 PCMU/8000\r\na=sendrecv\r\n'
+    async def call(self,recipient,media_peer=None):
+        sdp=f'v=0\r\no=test 1 1 IN IP4 127.0.0.1\r\ns=test\r\nc=IN IP4 127.0.0.1\r\nt=0 0\r\nm=audio {self.audio_port} RTP/AVP 8 0\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:0 PCMU/8000\r\na=sendrecv\r\n'
         code,headers,body=await self.request('INVITE',recipient,sdp)
         assert code==200,(code,headers,body)
         assert b'm=audio' in body
@@ -94,8 +99,22 @@ class SIP:
             self.writer.write(packet.encode());await self.writer.drain()
             if method=='BYE':assert (await asyncio.wait_for(future,10))[0]==200
             self.pending.pop(key,None)
+            if method=='ACK' and media_peer:
+                def destination(sdp):
+                    return re.search(r'c=IN IP4 ([^\r\n ]+)',sdp).group(1),int(re.search(r'm=audio ([0-9]+)',sdp).group(1))
+                caller_target=destination(body.decode());callee_target=destination(media_peer.offers[-1])
+                loop=asyncio.get_running_loop()
+                await asyncio.sleep(0.1)
+                for sequence in range(20):
+                    for peer,target,ssrc in ((self,caller_target,1),(media_peer,callee_target,2)):
+                        packet=struct.pack('!BBHII',0x80,8,sequence,sequence*160,ssrc)+bytes([0xd5])*160
+                        await loop.sock_sendto(peer.udp,packet,target)
+                    await asyncio.sleep(0.02)
+                for peer in (self,media_peer):
+                    packet=await asyncio.wait_for(loop.sock_recv(peer.udp,2048),2)
+                    assert packet[0]>>6==2 and packet[1]&127==8 and len(packet)>=172,packet
     async def close(self):
-        self.task.cancel();self.writer.close()
+        self.udp.close();self.task.cancel();self.writer.close()
         try: await asyncio.wait_for(self.writer.wait_closed(),1)
         except (ssl.SSLError, ConnectionError, TimeoutError): self.writer.transport.abort()
         await self.task
@@ -120,14 +139,17 @@ async def main():
         modem=await SIP('modem1').connect();modem2=await SIP('modem2').connect();alice=await SIP('alice').connect();bob=await SIP('bob').connect()
         for peer in (modem,modem2,alice,bob):
             result=await peer.request('REGISTER');assert result[0]==200,(peer.username,result[0])
-        await alice.call('201')
+        await alice.call('201',media_peer=bob)
         assert bob.calls
         await alice.call('123456')
         assert modem.calls
         await bob.call('123456')
         assert modem2.calls
+        before_calls=(len(alice.calls),len(bob.calls));before_ends=len(alice.ends)+len(bob.ends)
         await modem.call('123456')
-        assert len(alice.calls)+len(bob.calls)>=2
+        await asyncio.sleep(0.1)
+        assert len(alice.calls)>before_calls[0] and len(bob.calls)>before_calls[1]
+        assert len(alice.ends)+len(bob.ends)>=before_ends+2
         marker=secrets.token_hex(8)
         result=await alice.request('MESSAGE','201','internal '+marker,secrets.token_hex(32));assert result[0]==202,result[0]
         await asyncio.sleep(2)
@@ -158,7 +180,7 @@ async def main():
         assert any(text=='offline '+marker for _,text in bob.messages)
         jobs=await api('deliveries')
         assert all(job['status']=='delivered' for job in jobs if job['created']>time.time()-20),jobs
-        print('PASS: internal voice and first-answer group call, TLS registration, authenticated MESSAGE, internal extension SMS, fanout, final responses, stable dedupe')
+        print('PASS: bidirectional internal RTP, internal voice and first-answer group call, TLS registration, authenticated MESSAGE, internal extension SMS, fanout, final responses, stable dedupe')
         for peer in (modem,modem2,alice,bob):await peer.close()
 
 if __name__=='__main__':asyncio.run(main())
