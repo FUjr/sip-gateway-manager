@@ -226,3 +226,24 @@ def test_new_multi_receiver_purpose_renders_parallel_calls_and_independent_sms(g
     m.ingest(Ingest(account='modem2', recipient='10099', sender='10099', content='test', delivery_id='multi'))
     targets = m.store.db.execute('SELECT target FROM jobs ORDER BY target').fetchall()
     assert [r['target'] for r in targets] == ['alice', 'charlie']
+
+
+def test_cellular_inbound_accepts_registered_account_uri(gateway):
+    m,client=gateway;setup(client)
+    add(client,'routes',{'id':'in_voice','name':'Voice in','medium':'voice','direction':'inbound',
+        'sources':['modem1'],'match':'exact','number':'10086','target_type':'group','target':'team'})
+    add(client,'routes',{'id':'out_voice','name':'Voice out','medium':'voice','direction':'outbound',
+        'sources':['alice'],'target':'modem1'})
+    assert client.post('/api/v1/apply').json()['applied']
+    def route(source,number,caller='10086'):
+        return m.voice_resolve({'source':source,'number':number,'caller':caller})['dial']
+    assert route('modem1','modem1')=='PJSIP/alice&PJSIP/bob'
+    assert route('modem1','100')=='PJSIP/alice&PJSIP/bob'
+    assert route('modem1','modem1','10010')==''
+    assert route('modem1','modem2')==''
+    assert route('alice','alice')==''
+    assert route('alice','modem1')==''
+    assert route('alice','+12345678')=='PJSIP/+12345678@modem1'
+    assert route('alice','201')=='PJSIP/bob'
+    assert route('alice','123;bad')==''
+    assert route('missing','missing')==''

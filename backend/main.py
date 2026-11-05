@@ -364,7 +364,11 @@ def voice_resolve(body: dict):
     if not account: return {'dial':''}
     number=body.get('number','')
     import re
-    if not re.fullmatch(r'\+?[0-9]{1,24}',number): return {'dial':''}
+    # Cellular gateways address inbound INVITEs to their own registered AoR.
+    # Only client-originated calls need a numeric dialled destination.
+    numeric=isinstance(number,str) and re.fullmatch(r'\+?[0-9]{1,24}',number)
+    if not numeric and not (account['kind']=='device' and number==source):
+        return {'dial':''}
     targets=resolve(conf,source,number,'voice',caller=body.get('caller',''))
     targets=[t for t in targets if store.live_account(t)]
     return {'dial':'&'.join('PJSIP/'+t if account['kind']=='device' or accounts[t]['kind']=='client' else 'PJSIP/'+number+'@'+t for t in targets)}
