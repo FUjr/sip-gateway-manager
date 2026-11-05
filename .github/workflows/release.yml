@@ -1,0 +1,62 @@
+name: Validate and release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements.txt
+      - run: python -m pytest -q
+      - run: npm ci && npm run build && npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Build release containers
+        run: |
+          docker build -f docker/Dockerfile.pbx -t sip-gateway-manager-pbx:${GITHUB_REF_NAME} .
+          docker build -f docker/Dockerfile.web -t sip-gateway-manager-web:${GITHUB_REF_NAME} .
+      - name: Disposable stack and real SIP regression
+        run: |
+          mkdir -p certs
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout certs/privkey.pem -out certs/fullchain.pem -days 2 -subj /CN=sip.test -addext subjectAltName=DNS:sip.test
+          printf 'AMI_SECRET=%s\nADMIN_PASSWORD=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 16)" > .env
+          cat > compose.ci.yaml <<'YAML'
+          services:
+            pbx:
+              ports: !override
+                - '15061:5061/tcp'
+                - '20000-20199:20000-20199/udp'
+            web:
+              ports: !override
+                - '28443:8443/tcp'
+          YAML
+          RELEASE_TAG=${GITHUB_REF_NAME} docker compose -p sip-ci -f compose.release.yaml -f compose.ci.yaml up -d --wait
+          SIP_TEST_PORT=15061 WEB_TEST_URL=https://localhost:28443 python tests/protocol.py
+      - name: Browser scenarios
+        working-directory: frontend
+        env:
+          WEB_TEST_URL: https://localhost:28443
+          TENANT_TEST_URL: https://localhost:28443
+        run: npx playwright test
+      - name: Release bundle
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          docker save sip-gateway-manager-pbx:${GITHUB_REF_NAME} sip-gateway-manager-web:${GITHUB_REF_NAME} | gzip > sip-gateway-manager-images-amd64.tar.gz
+          sha256sum sip-gateway-manager-images-amd64.tar.gz compose.release.yaml > SHA256SUMS
+          gh release create "${GITHUB_REF_NAME}" --verify-tag --title "SIP Gateway Manager ${GITHUB_REF_NAME}" --generate-notes sip-gateway-manager-images-amd64.tar.gz compose.release.yaml SHA256SUMS
+      - name: Remove disposable stack
+        if: always()
+        run: docker compose -p sip-ci -f compose.release.yaml -f compose.ci.yaml down -v --remove-orphans || true

@@ -11,6 +11,11 @@ endpoint_identifier_order=auth_username,username,ip
 type=transport
 protocol=tls
 bind=0.0.0.0:{s['sip_tls_port']}
+external_signaling_address={s['hostname']}
+external_signaling_port={s['sip_tls_port']}
+external_media_address={s['hostname']}
+local_net=127.0.0.0/8
+local_net=172.16.0.0/12
 cert_file=/run/gateway/tls/fullchain.pem
 priv_key_file=/run/gateway/tls/privkey.pem
 method=tlsv1_2
@@ -51,42 +56,9 @@ rewrite_contact=yes
 trust_id_inbound=yes
 send_pai=yes
 '''
-    # Every source gets its own authenticated context. No unmatched fallback route.
-    dialplan = '[general]\nstatic=yes\nwriteprotect=yes\n'
-    clients = [a for a in config['accounts'] if a['kind'] == 'client' and a['enabled'] and a['voice_enabled']]
-    accounts = {a['id']: a for a in config['accounts']}
-    groups = {g['id']: g for g in config['groups']}
+    dialplan='[general]\nstatic=yes\nwriteprotect=yes\n'
     for a in config['accounts']:
-        dialplan += f"\n[managed-{a['id']}]\n"
-        if not a['enabled'] or not a['voice_enabled']:
-            dialplan += 'exten => _.,1,Hangup(21)\n'
-            continue
-        if a['kind'] == 'client':
-            for c in clients:
-                dialplan += f"exten => {c['extension']},1,Dial(PJSIP/{c['id']},45)\nsame => n,Hangup()\n"
-        dialplan += 'exten => _.,1,NoOp(Authenticated managed route)\n'
-        # Use ordered GotoIf tests rather than Asterisk pattern specificity (which defeats priority).
-        routes = sorted(config['routes'], key=lambda r: (r['priority'], r['id']))
-        routes = [r for r in routes if r['enabled'] and r['medium'] == 'voice' and a['id'] in r['sources']]
-        for i, r in enumerate(routes):
-            if r['match'] == 'any':
-                expr = '1'
-            elif r['match'] == 'exact':
-                expr = f'"${{EXTEN}}" = "{r["number"]}"'
-            else:
-                expr = f'"${{EXTEN:0:{len(r["number"])}}}" = "{r["number"]}"'
-            dialplan += f'same => n,GotoIf($[{expr}]?route{i})\n'
-        dialplan += 'same => n,Hangup(21)\n'
-        for i, r in enumerate(routes):
-            targets = groups[r['target']]['members'] if r['target_type'] == 'group' else [r['target']]
-            targets = [t for t in targets if accounts[t]['enabled'] and accounts[t]['voice_enabled']]
-            destinations = '&'.join(f'PJSIP/{t}' if a['kind'] == 'device' else f'PJSIP/${{EXTEN}}@{t}' for t in targets)
-            if a['kind'] == 'device':
-                dialplan += f'same => n(route{i}),NoOp(Cellular caller identity preserved)\n'
-                dialplan += f'same => n,Dial({destinations},45)\n' if destinations else 'same => n,Hangup(21)\n'
-            else:
-                dialplan += f'same => n(route{i}),Dial({destinations},45)\n' if destinations else f'same => n(route{i}),Hangup(21)\n'
-            dialplan += 'same => n,Hangup()\n'
+        dialplan+=f"\n[managed-{a['id']}]\nexten => _.,1,GatewayRoute({a['id']})\nsame => n,GotoIf($[\"${{GATEWAY_DIAL}}\" = \"\"]?blocked)\nsame => n,Dial(${{GATEWAY_DIAL}},45)\nsame => n,Hangup()\nsame => n(blocked),Hangup(21)\n"
     return {'pjsip.conf': pjsip, 'extensions.conf': dialplan,
             'rtp.conf': f"[general]\nrtpstart={s['rtp_start']}\nrtpend={s['rtp_end']}\n",
             'asterisk.conf': '[directories]\nastetcdir=/etc/asterisk\nastmoddir=/usr/lib/asterisk/modules\nastvarlibdir=/var/lib/asterisk\nastspooldir=/var/spool/asterisk\nastrundir=/var/run/asterisk\nastlogdir=/var/log/asterisk\n[options]\nrunuser=asterisk\nrungroup=asterisk\n',

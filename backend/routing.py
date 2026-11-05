@@ -1,6 +1,25 @@
-def resolve(config, source, recipient, medium):
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+def scheduled(route, now=None):
+    schedule=route.get('schedule')
+    if not schedule: return True
+    local=(now or datetime.now(timezone.utc)).astimezone(ZoneInfo(route.get('timezone','UTC')))
+    minute=local.hour*60+local.minute
+    def minutes(value):
+        h,m=map(int,value.split(':')); return h*60+m
+    for window in schedule['windows']:
+        start,end=minutes(window['start']),minutes(window['end'])
+        if start==end: continue
+        if start<end and local.weekday() in schedule['weekdays'] and start<=minute<end: return True
+        if start>end and ((local.weekday() in schedule['weekdays'] and minute>=start) or ((local.weekday()-1)%7 in schedule['weekdays'] and minute<end)): return True
+    return False
+
+def resolve(config, source, recipient, medium, caller=None, now=None):
     accounts = {a['id']: a for a in config['accounts'] if a['enabled']}
     account = accounts.get(source)
+    if account:
+        accounts={k:v for k,v in accounts.items() if v.get('tenant_id')==account.get('tenant_id')}
     flag = 'sms_enabled' if medium == 'sms' else 'voice_enabled'
     if not account or not account[flag]:
         return []
@@ -10,11 +29,13 @@ def resolve(config, source, recipient, medium):
                 return [target['id']]
     direction = 'inbound' if account['kind'] == 'device' else 'outbound'
     for route in sorted(config['routes'], key=lambda r: (r['priority'], r['id'])):
+        if route.get('tenant_id') != account.get('tenant_id') or not scheduled(route,now): continue
+        number=caller if direction=='inbound' and medium=='voice' and caller is not None else recipient
         if not route['enabled'] or route['medium'] != medium or route['direction'] != direction or source not in route['sources']:
             continue
-        if route['match'] == 'exact' and recipient != route['number']:
+        if route['match'] == 'exact' and number != route['number']:
             continue
-        if route['match'] == 'prefix' and not recipient.startswith(route['number']):
+        if route['match'] == 'prefix' and not number.startswith(route['number']):
             continue
         targets = [route['target']]
         if route['target_type'] == 'group':
@@ -31,9 +52,9 @@ def validate(config):
     for account in accounts.values():
         if account['id'] in ('global', 'system', 'transport_tls', 'anonymous'):
             raise ValueError('reserved account ID')
-        if account['extension'] in extensions:
+        if (account.get('tenant_id'),account['extension']) in extensions:
             raise ValueError('extensions must be unique')
-        extensions.add(account['extension'])
+        extensions.add((account.get('tenant_id'),account['extension']))
         if account['kind'] == 'device' and account['device_id'] not in devices:
             raise ValueError('device account needs a physical device')
     for group in groups.values():

@@ -1,6 +1,6 @@
 import re
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -25,7 +25,26 @@ class Group(Strict):
     name: str = Field(min_length=1, max_length=80)
     members: list[str] = Field(min_length=1, max_length=64)
 
+class TimeWindow(Strict):
+    start: str = Field(pattern=r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+    end: str = Field(pattern=r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+
+    @model_validator(mode='after')
+    def distinct(self):
+        if self.start == self.end: raise ValueError('开始和结束时间不能相同')
+        return self
+
+class Schedule(Strict):
+    weekdays: list[int] = Field(min_length=1,max_length=7)
+    windows: list[TimeWindow] = Field(min_length=1,max_length=16)
+    @field_validator('weekdays')
+    @classmethod
+    def days(cls,value):
+        if any(d<0 or d>6 for d in value) or len(set(value))!=len(value): raise ValueError('invalid weekdays')
+        return value
+
 class Route(Strict):
+    schedule: Schedule | None = None
     id: str = Field(pattern=r'^[a-z][a-z0-9_]{0,47}$')
     name: str = Field(min_length=1, max_length=80)
     medium: Literal['voice', 'sms']

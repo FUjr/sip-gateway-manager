@@ -12,6 +12,7 @@ from .models import Account, Device, Group, Route, Settings, Login, Ingest, Comp
 from .store import Store
 from .routing import resolve, validate
 from .render import render
+from .experience import ServiceIntent, Rehearsal, describe, compile_service, rehearse
 
 DATA = Path(os.getenv('DATA_DIR', '/data'))
 store = Store(str(DATA / 'gateway.sqlite3'))
@@ -20,20 +21,8 @@ MODELS = {'devices': Device, 'accounts': Account, 'groups': Group, 'routes': Rou
 failures = {}
 apply_lock = asyncio.Lock()
 
-@app.middleware('http')
-async def authenticate(request: Request, call_next):
-    if request.url.path not in ('/api/v1/login', '/api/v1/health'):
-        token = hashlib.sha256(request.cookies.get('session', '').encode()).hexdigest()
-        with store.lock:
-            session = store.db.execute('SELECT * FROM sessions WHERE token=? AND expires>?', (token, time.time())).fetchone()
-        if not session:
-            return Response('authentication required', 401)
-        if request.method not in ('GET', 'HEAD') and not hmac.compare_digest(request.headers.get('x-csrf-token', ''), session['csrf']):
-            return Response('invalid CSRF token', 403)
-    response = await call_next(request)
-    response.headers['Cache-Control'] = 'no-store'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    return response
+from .tenancy import install, current
+admin = install(app, store)
 
 @app.get('/api/v1/health')
 def health():
@@ -44,34 +33,6 @@ def health():
         except (OSError,subprocess.TimeoutExpired,RuntimeError):
             raise HTTPException(503,'PBX not ready')
     return {'status': 'ok'}
-
-@app.post('/api/v1/login')
-def login(body: Login, request: Request, response: Response):
-    peer = request.client.host if request.client else 'unknown'
-    now = time.time()
-    entries = [t for t in failures.get(peer, []) if t > now - 300]
-    failures[peer] = entries
-    if len(entries) >= 10:
-        raise HTTPException(429, 'too many failed logins; retry in five minutes')
-    password = os.getenv('ADMIN_PASSWORD', '')
-    if len(password) < 16:
-        raise HTTPException(503, 'administrator password must be configured (at least 16 characters)')
-    if not (hmac.compare_digest(body.username, os.getenv('ADMIN_USERNAME', 'admin')) and hmac.compare_digest(body.password, password)):
-        failures[peer].append(now)
-        raise HTTPException(401, 'invalid credentials')
-    token, csrf = secrets.token_urlsafe(48), secrets.token_urlsafe(32)
-    with store.transaction() as db:
-        db.execute('DELETE FROM sessions WHERE expires<?', (now,))
-        db.execute('INSERT INTO sessions VALUES(?,?,?)', (hashlib.sha256(token.encode()).hexdigest(), csrf, now+43200))
-    response.set_cookie('session', token, httponly=True, secure=True, samesite='strict', max_age=43200)
-    return {'csrf': csrf}
-
-@app.get('/api/v1/session')
-def session(request: Request):
-    token = hashlib.sha256(request.cookies['session'].encode()).hexdigest()
-    with store.lock:
-        row = store.db.execute('SELECT csrf FROM sessions WHERE token=?', (token,)).fetchone()
-    return {'csrf': row['csrf'], 'username': os.getenv('ADMIN_USERNAME', 'admin')}
 
 @app.post('/api/v1/logout')
 def logout(request: Request, response: Response):
@@ -84,30 +45,85 @@ def logout(request: Request, response: Response):
 def config():
     return store.config()
 
+@app.get('/api/v1/experience')
+def experience():
+    return describe(store.config())
+
+@app.post('/api/v1/line-service')
+def line_service(body: ServiceIntent):
+    try:
+        # Optimistic revision check and all generated objects share one transaction.
+        with store.transaction() as db:
+            updated = compile_service(store.config(), body)
+            for kind in ('groups', 'routes'):
+                for value in updated[kind]:
+                    db.execute('INSERT OR REPLACE INTO objects VALUES(?,?,?)', (store.key(kind), value['id'], json.dumps({k:v for k,v in value.items() if k not in ('tenant_id','timezone')})))
+            result = describe(store.config())
+        return result
+    except ValueError as error:
+        raise HTTPException(409, str(error))
+
+@app.post('/api/v1/rehearse')
+def rehearsal(body: Rehearsal):
+    try:
+        conf=store.config()
+        if body.applied:
+            with store.lock: row=store.db.execute('SELECT data FROM published WHERE tenant_id=?',(current.get(),)).fetchone()
+            if not row: raise ValueError('尚未应用配置')
+            conf=json.loads(row[0])
+        return rehearse(conf, body)
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+
+@app.post('/api/v1/rule-set')
+def rule_set(body: dict):
+    from .experience import revision
+    try:
+        with store.transaction() as db:
+            conf=store.config()
+            if body.get('revision') != revision(conf): raise HTTPException(409,'配置已更新，请刷新')
+            for kind in ('groups','routes'):
+                values=[MODELS[kind].model_validate({k:v for k,v in value.items() if k not in ('tenant_id','timezone')}).model_dump() for value in body[kind]]
+                for value in values:
+                    if not value['id'].startswith(current.get()+'_'): raise ValueError('invalid owned rule ID')
+                db.execute('DELETE FROM objects WHERE kind=?',(store.key(kind),))
+                for value in values: db.execute('INSERT INTO objects VALUES(?,?,?)',(store.key(kind),value['id'],json.dumps(value)))
+            validate(store.config())
+        return describe(store.config())
+    except (ValueError,KeyError,TypeError) as error: raise HTTPException(422,str(error))
+
 @app.put('/api/v1/{kind}/{identity}')
-def put(kind: str, identity: str, body: dict):
+def put(kind: str, identity: str, body: dict, request: Request):
+    if kind == 'settings': admin(request)
     if kind not in MODELS:
         raise HTTPException(404)
     try:
-        value = MODELS[kind].model_validate(body).model_dump()
+        value = MODELS[kind].model_validate({k:v for k,v in body.items() if k not in ('tenant_id','timezone')}).model_dump()
         if kind == 'settings':
             identity = 'main'
         elif value['id'] != identity:
             raise ValueError('ID cannot change')
         with store.transaction() as db:
-            db.execute('INSERT OR REPLACE INTO objects VALUES(?,?,?)', (kind, identity, json.dumps(value)))
+            if kind == 'accounts':
+                owner=db.execute('SELECT tenant_id FROM account_registry WHERE id=?',(identity,)).fetchone()
+                if owner and owner[0] != current.get(): raise ValueError('account identity belongs to another tenant or is retired')
+                db.execute('INSERT OR IGNORE INTO account_registry VALUES(?,?)',(identity,current.get()))
+            if kind != 'settings' and db.execute('SELECT 1 FROM objects WHERE id=? AND kind!=? AND kind LIKE ?', (identity,store.key(kind),'%:'+kind)).fetchone():
+                raise ValueError('ID already owned by another tenant')
+            db.execute('INSERT OR REPLACE INTO objects VALUES(?,?,?)', (store.key(kind), identity, json.dumps(value)))
             validate(store.config())
     except (ValueError, TypeError) as error:
         raise HTTPException(422, str(error))
     return value
 
 @app.delete('/api/v1/{kind}/{identity}')
-def delete(kind: str, identity: str):
+def delete(kind: str, identity: str, request: Request):
+    if kind == 'settings': admin(request)
     if kind not in MODELS:
         raise HTTPException(404)
     try:
         with store.transaction() as db:
-            db.execute('DELETE FROM objects WHERE kind=? AND id=?', (kind, identity))
+            db.execute('DELETE FROM objects WHERE kind=? AND id=?', (store.key(kind), identity))
             validate(store.config())
     except ValueError as error:
         raise HTTPException(409, str(error))
@@ -133,9 +149,13 @@ def preview():
 
 @app.post('/api/v1/apply')
 async def apply():
+    return await publish()
+
+async def publish(include_draft=True):
     async with apply_lock:
-        conf = store.config()
-        validate(conf)
+        own = store.config()
+        validate(own)
+        conf = store.aggregate(own if include_draft else None)
         revision = hashlib.sha256(json.dumps(conf, sort_keys=True).encode()).hexdigest()[:16]
         stage = DATA / 'revisions' / revision
         stage.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -180,6 +200,11 @@ async def apply():
                 except (OSError, subprocess.TimeoutExpired):
                     pass
                 raise HTTPException(503, str(error))
+        if include_draft:
+            with store.transaction() as db:
+                db.execute('INSERT OR REPLACE INTO published VALUES(?,?)',(current.get(),json.dumps(own)))
+                if db.execute('SELECT admin FROM tenants WHERE id=?',(current.get(),)).fetchone()[0]:
+                    db.execute("INSERT OR REPLACE INTO platform VALUES('active_settings',?)",(json.dumps(own['settings']),))
         active = DATA / 'applied-config.json.new'
         active.write_text(json.dumps(conf))
         active.chmod(0o600)
@@ -191,16 +216,21 @@ async def apply():
 @app.get('/api/v1/status')
 def status():
     with store.lock:
-        counts = dict(store.db.execute('SELECT status,count(*) FROM jobs GROUP BY status').fetchall())
-    return {'deliveries': counts, 'applied': json.loads((DATA/'applied.json').read_text()) if (DATA/'applied.json').exists() else None}
+        counts = dict(store.db.execute('SELECT j.status,count(*) FROM jobs j JOIN messages m ON m.id=j.message_id WHERE m.source IN (SELECT id FROM objects WHERE kind=?) GROUP BY j.status',(store.key('accounts'),)).fetchall())
+        conf = store.config()
+    active = DATA / 'applied-config.json'
+    return {'deliveries': counts,
+            'pending_changes': store.pending(),
+            'applied': json.loads((DATA/'applied.json').read_text()) if (DATA/'applied.json').exists() else None}
 
 @app.get('/api/v1/deliveries')
 def deliveries():
     with store.lock:
-        return [dict(row) for row in store.db.execute('SELECT j.*,m.source,m.recipient,m.created FROM jobs j JOIN messages m ON m.id=j.message_id ORDER BY m.created DESC LIMIT 500')]
+        return [dict(row) for row in store.db.execute('SELECT j.*,m.source,m.recipient,m.created FROM jobs j JOIN messages m ON m.id=j.message_id WHERE m.source IN (SELECT id FROM objects WHERE kind=?) ORDER BY m.created DESC LIMIT 500',(store.key('accounts'),))]
 
 @app.post('/api/v1/deliveries/{identity}/retry')
 def retry(identity: str):
+    if identity not in {r['id'] for r in deliveries()}: raise HTTPException(404)
     with store.transaction() as db:
         db.execute("UPDATE jobs SET status='pending',next=?,updated=? WHERE id=? AND status IN ('failed','pending') AND message_id IN (SELECT id FROM messages WHERE expires>? AND body IS NOT NULL)", (time.time(),time.time(),identity,time.time()))
     return {'ok': True}
@@ -213,7 +243,8 @@ def ingest(message: Ingest):
     now = time.time()
     fingerprint = hashlib.sha256(json.dumps(message.model_dump(exclude={'delivery_id'}), sort_keys=True).encode()).hexdigest()
     identity = hashlib.sha256((message.account + ':' + message.delivery_id).encode()).hexdigest()
-    conf = json.loads((DATA/'applied-config.json').read_text()) if os.getenv('PBX_MANAGED') == '1' and (DATA/'applied-config.json').exists() else store.config()
+    conf = json.loads((DATA/'applied-config.json').read_text()) if os.getenv('PBX_MANAGED') == '1' and (DATA/'applied-config.json').exists() else store.aggregate()
+    if not store.live_account(message.account): raise HTTPException(404,'inactive account')
     targets = resolve(conf, message.account, message.recipient, 'sms')
     with store.transaction() as db:
         old = db.execute('SELECT fingerprint FROM messages WHERE id=?', (identity,)).fetchone()
@@ -263,14 +294,17 @@ async def dispatcher():
             db.execute('UPDATE messages SET body=NULL WHERE expires<=?', (now,))
             db.execute('DELETE FROM jobs WHERE updated<? AND status IN (\'delivered\',\'failed\',\'expired\')', (now-2592000,))
             db.execute('DELETE FROM messages WHERE created<? AND id NOT IN (SELECT message_id FROM jobs)', (now-2592000,))
-            row = db.execute("SELECT j.*,m.body,m.sender,m.recipient FROM jobs j JOIN messages m ON m.id=j.message_id WHERE j.status='pending' AND j.next<=? AND m.body IS NOT NULL ORDER BY j.next LIMIT 1", (now,)).fetchone()
+            row = db.execute("SELECT j.*,m.body,m.sender,m.recipient,m.source FROM jobs j JOIN messages m ON m.id=j.message_id WHERE j.status='pending' AND j.next<=? AND m.body IS NOT NULL ORDER BY j.next LIMIT 1", (now,)).fetchone()
             if row:
                 db.execute("UPDATE jobs SET status='sending',attempts=attempts+1,updated=? WHERE id=?", (now,row['id']))
         if row:
             try:
                 job = dict(row)
-                conf = json.loads((DATA/'applied-config.json').read_text()) if (DATA/'applied-config.json').exists() else store.config()
+                conf = json.loads((DATA/'applied-config.json').read_text()) if (DATA/'applied-config.json').exists() else store.aggregate()
                 account = next((a for a in conf['accounts'] if a['id'] == job['target']), None)
+                if not store.live_account(job['target']) or not store.live_account(job['source']):
+                    complete(Completion(delivery_id=row['id'],code=403))
+                    continue
                 if account and account['kind'] == 'client':
                     job['recipient'] = account['extension']
                 await send(job)
@@ -287,3 +321,42 @@ async def startup():
 async def shutdown():
     if hasattr(app.state, 'dispatcher'):
         app.state.dispatcher.cancel()
+
+
+@app.delete('/api/v1/platform/tenants/{identity}')
+async def remove_tenant(identity: str,request: Request):
+    admin(request)
+    if identity == current.get(): raise HTTPException(409,'不能删除当前管理员')
+    with store.transaction() as db:
+        if not db.execute('UPDATE tenants SET active=0 WHERE id=?',(identity,)).rowcount: raise HTTPException(404)
+        db.execute('DELETE FROM sessions WHERE token IN (SELECT token FROM identities WHERE tenant_id=?)',(identity,))
+        db.execute('DELETE FROM jobs WHERE message_id IN (SELECT id FROM messages WHERE source IN (SELECT id FROM objects WHERE kind=?))',(identity+':accounts',))
+        db.execute('DELETE FROM messages WHERE source IN (SELECT id FROM objects WHERE kind=?)',(identity+':accounts',))
+        db.execute('DELETE FROM objects WHERE substr(kind,1,?)=?',(len(identity)+1,identity+':'))
+        db.execute('DELETE FROM published WHERE tenant_id=?',(identity,))
+    await publish(False)
+    import shutil
+    revisions=DATA/'revisions'
+    if revisions.exists():
+        for directory in revisions.iterdir():
+            if directory.is_dir() and directory.name != json.loads((DATA/'applied.json').read_text())['revision']:
+                shutil.rmtree(directory)
+    with store.transaction() as db:
+        db.execute('DELETE FROM identities WHERE tenant_id=?',(identity,))
+        db.execute('DELETE FROM tenants WHERE id=?',(identity,))
+    return {'ok':True}
+
+@internal.post('/resolve')
+def voice_resolve(body: dict):
+    source=body.get('source','')
+    if not store.live_account(source): return {'dial':''}
+    conf=json.loads((DATA/'applied-config.json').read_text()) if (DATA/'applied-config.json').exists() else store.aggregate()
+    accounts={a['id']:a for a in conf['accounts']}
+    account=accounts.get(source)
+    if not account: return {'dial':''}
+    number=body.get('number','')
+    import re
+    if not re.fullmatch(r'\+?[0-9]{1,24}',number): return {'dial':''}
+    targets=resolve(conf,source,number,'voice',caller=body.get('caller',''))
+    targets=[t for t in targets if store.live_account(t)]
+    return {'dial':'&'.join('PJSIP/'+t if account['kind']=='device' or accounts[t]['kind']=='client' else 'PJSIP/'+number+'@'+t for t in targets)}

@@ -1,0 +1,29 @@
+services:
+  pbx:
+    image: sip-gateway-manager-pbx:${RELEASE_TAG:-v1.0.0}
+    restart: unless-stopped
+    environment:
+      AMI_SECRET: ${AMI_SECRET:?set AMI_SECRET}
+    volumes:
+      - gateway-data:/data
+      - ./certs:/certs:ro
+    ports:
+      - '${SIP_TLS_PORT:-5061}:${SIP_TLS_PORT:-5061}/tcp'
+      - '${RTP_PORTS:-20000-20199}:${RTP_PORTS:-20000-20199}/udp'
+    healthcheck:
+      test: [CMD, /opt/venv/bin/python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  web:
+    image: sip-gateway-manager-web:${RELEASE_TAG:-v1.0.0}
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-8443}:8443/tcp'
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      pbx:
+        condition: service_healthy
+volumes:
+  gateway-data:

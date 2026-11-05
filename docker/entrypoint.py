@@ -3,8 +3,8 @@ from pathlib import Path
 import shutil
 from backend.render import render
 from backend.store import Store
-if len(os.environ.get('ADMIN_PASSWORD','')) < 16 or len(os.environ.get('AMI_SECRET','')) < 24:
-    raise SystemExit('Configure ADMIN_PASSWORD (16+) and AMI_SECRET (24+) in .env')
+if len(os.environ.get('AMI_SECRET','')) < 24:
+    raise SystemExit('Configure AMI_SECRET (24+ characters) in .env')
 for name in ('/data','/run/gateway','/var/run/asterisk','/etc/asterisk'):
     Path(name).mkdir(parents=True,exist_ok=True)
 for name in ('/var/run/asterisk','/run/gateway'):
@@ -17,7 +17,13 @@ for name in ('fullchain.pem','privkey.pem'):
     shutil.copyfile(Path('/certs')/name,tls/name)
     shutil.chown(tls/name,user='asterisk',group='asterisk')
     (tls/name).chmod(0o640)
-conf=Store('/data/gateway.sqlite3').config()
+store=Store('/data/gateway.sqlite3')
+from backend.tenancy import install
+from fastapi import FastAPI
+install(FastAPI(),store)
+if store.db.execute("SELECT 1 FROM objects WHERE instr(kind,':')=0 AND kind!='settings' LIMIT 1").fetchone():
+    raise SystemExit('Legacy data detected. Use a new volume; existing data was not modified.')
+conf=store.aggregate()
 import json, hashlib
 from backend.models import Settings
 settings=conf['settings'][0] if conf['settings'] else Settings().model_dump()

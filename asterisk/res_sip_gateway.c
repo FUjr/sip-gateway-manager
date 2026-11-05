@@ -12,6 +12,8 @@
 #include <pjlib.h>
 #include <curl/curl.h>
 #include "asterisk/module.h"
+#include "asterisk/channel.h"
+#include "asterisk/pbx.h"
 #include "asterisk/res_pjsip.h"
 #include "asterisk/manager.h"
 #include "asterisk/json.h"
@@ -145,7 +147,7 @@ static int send_task(void *data)
     id=ast_strdup(job->id);
     if(!id){pjsip_tx_data_dec_ref(tdata);goto done;}
     ast_module_ref(ast_module_info->self);
-    rc=ast_sip_send_out_of_dialog_request(tdata,endpoint,30,id,completed);
+    rc=ast_sip_send_out_of_dialog_request(tdata,endpoint,30000,id,completed);
     if(rc){ast_free(id);ast_module_unref(ast_module_info->self);}
 done:
     if(rc){struct ast_json *json=ast_json_pack("{s:s,s:i}","delivery_id",job->id,"code",480);if(json){post("/complete",json);ast_json_unref(json);}}
@@ -191,16 +193,53 @@ static pj_status_t response_sent(pjsip_tx_data *tdata)
     return PJ_SUCCESS;
 }
 static pjsip_module module={.name={"Durable SIP Gateway",19},.id=-1,.priority=PJSIP_MOD_PRIORITY_APPLICATION-1,.on_rx_request=incoming,.on_tx_response=response_sent};
+struct route_response { char data[8192]; size_t used; };
+static size_t route_write(void *data,size_t size,size_t count,void *opaque)
+{
+    struct route_response *out=opaque; size_t n=size*count;
+    if(n>=sizeof(out->data)-out->used)return 0;
+    memcpy(out->data+out->used,data,n);out->used+=n;out->data[out->used]=0;return n;
+}
+static int route_call(struct ast_channel *chan,const char *source)
+{
+    CURL *curl=curl_easy_init(); struct route_response out={{0},0};
+    struct curl_slist *headers=NULL; struct ast_json *request=NULL,*response=NULL;
+    char *body=NULL; long code=0; const char *dial; const char *caller;
+    pbx_builtin_setvar_helper(chan,"GATEWAY_DIAL","");
+    if(!curl)return 0;
+    caller=ast_channel_caller(chan)->id.number.valid ? ast_channel_caller(chan)->id.number.str : "";
+    request=ast_json_pack("{s:s,s:s,s:s}","source",source,"number",ast_channel_exten(chan),"caller",S_OR(caller,""));
+    if(!request)goto done;
+    body=ast_json_dump_string(request);if(!body)goto done;
+    headers=curl_slist_append(headers,"Content-Type: application/json");
+    curl_easy_setopt(curl,CURLOPT_UNIX_SOCKET_PATH,"/run/gateway/ingest.sock");
+    curl_easy_setopt(curl,CURLOPT_URL,"http://localhost/resolve");
+    curl_easy_setopt(curl,CURLOPT_HTTPHEADER,headers);
+    curl_easy_setopt(curl,CURLOPT_POSTFIELDS,body);
+    curl_easy_setopt(curl,CURLOPT_TIMEOUT_MS,2000L);
+    curl_easy_setopt(curl,CURLOPT_NOSIGNAL,1L);
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,route_write);
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,&out);
+    if(curl_easy_perform(curl)!=CURLE_OK)goto done;
+    curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&code);if(code!=200)goto done;
+    response=ast_json_load_string(out.data,NULL);if(!response)goto done;
+    dial=ast_json_string_get(ast_json_object_get(response,"dial"));
+    if(dial && strspn(dial,"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/@+&")==strlen(dial))pbx_builtin_setvar_helper(chan,"GATEWAY_DIAL",dial);
+ done:
+    ast_json_unref(request);ast_json_unref(response);ast_json_free(body);curl_slist_free_all(headers);curl_easy_cleanup(curl);return 0;
+}
 static int load_module(void)
 {
     serializer=ast_sip_create_serializer("gateway/send");
     if(!serializer)return AST_MODULE_LOAD_DECLINE;
     if(ast_sip_register_service(&module)!=PJ_SUCCESS)return AST_MODULE_LOAD_DECLINE;
     ast_manager_register_xml("GatewayMessageSend",EVENT_FLAG_MESSAGE,action_send);
+    if(ast_register_application_xml("GatewayRoute",route_call))return AST_MODULE_LOAD_DECLINE;
     return AST_MODULE_LOAD_SUCCESS;
 }
 static int unload_module(void)
 {
+    ast_unregister_application("GatewayRoute");
     ast_manager_unregister("GatewayMessageSend");ast_sip_unregister_service(&module);ast_taskprocessor_unreference(serializer);return 0;
 }
 AST_MODULE_INFO(ASTERISK_GPL_KEY,AST_MODFLAG_LOAD_ORDER,"Durable SIP Gateway MESSAGE bridge",

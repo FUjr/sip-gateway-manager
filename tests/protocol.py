@@ -42,7 +42,10 @@ class SIP:
                 else:
                     method=lines[0].split()[0]
                     if method in ('BYE','CANCEL'):self.ends.append(headers['call-id'])
-                    if method=='MESSAGE':self.messages.append((headers,body.decode()))
+                    if method=='MESSAGE':
+                        # A real modem acknowledges after queuing SMS, not within milliseconds.
+                        await asyncio.sleep(0.2)
+                        self.messages.append((headers,body.decode()))
                     if method=='INVITE':self.calls.append(headers);self.offers.append(body.decode())
                     payload=b''
                     if method=='INVITE':
@@ -124,7 +127,8 @@ async def main():
     async with httpx.AsyncClient(base_url=WEB,verify=False) as web:
         async def api(path,method='GET',body=None):
             r=await web.request(method,'/api/v1/'+path,json=body);r.raise_for_status();return r.json()
-        auth=await api('login','POST',{'username':'admin','password':env['ADMIN_PASSWORD']});web.headers['X-CSRF-Token']=auth['csrf']
+        state=await api('auth/state')
+        auth=await api('register' if state['bootstrap'] else 'login','POST',{'username':'admin','password':env['ADMIN_PASSWORD']});web.headers['X-CSRF-Token']=auth['csrf']
         await api('devices/router','PUT',{'id':'router','name':'Protocol Router'})
         for name,kind,extension in [('modem1','device','100'),('modem2','device','101'),('alice','client','200'),('bob','client','201')]:
             await api('accounts/'+name,'PUT',{'id':name,'name':name,'kind':kind,'device_id':'router' if kind=='device' else '', 'extension':extension,'password':PASSWORD})

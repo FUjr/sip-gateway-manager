@@ -5,15 +5,13 @@ services:
       dockerfile: docker/Dockerfile.pbx
     restart: unless-stopped
     environment:
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
       AMI_SECRET: ${AMI_SECRET:?set AMI_SECRET}
     volumes:
       - gateway-data:/data
       - ./certs:/certs:ro
     ports:
-      - "${SIP_TLS_PORT:-5061}:5061/tcp"
-      - "${RTP_PORTS:-20000-20199}:20000-20199/udp"
+      - "${SIP_TLS_PORT:-5061}:${SIP_TLS_PORT:-5061}/tcp"
+      - "${RTP_PORTS:-20000-20199}:${RTP_PORTS:-20000-20199}/udp"
     healthcheck:
       test: [CMD, /opt/venv/bin/python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
       interval: 30s

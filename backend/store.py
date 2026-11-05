@@ -27,6 +27,11 @@ class Store:
     @contextmanager
     def transaction(self):
         with self.lock:
+            from .tenancy import current
+            if current.get():
+                from fastapi import HTTPException
+                row=self.db.execute('SELECT active FROM tenants WHERE id=?',(current.get(),)).fetchone()
+                if not row or not row[0]: raise HTTPException(403,'租户已停用')
             self.db.execute('BEGIN IMMEDIATE')
             try:
                 yield self.db
@@ -35,9 +40,59 @@ class Store:
                 self.db.execute('ROLLBACK')
                 raise
 
+    def key(self,kind):
+        from .tenancy import current
+        return current.get()+':'+kind if current.get() and kind!='settings' else kind
+
     def objects(self, kind):
         with self.lock:
-            return [json.loads(r['data']) for r in self.db.execute('SELECT data FROM objects WHERE kind=? ORDER BY id', (kind,))]
+            from .tenancy import current
+            if kind=='settings' and current.get():
+                admin=self.db.execute('SELECT admin FROM tenants WHERE id=?',(current.get(),)).fetchone()
+                if not admin or not admin[0]:
+                    active=self.db.execute("SELECT value FROM platform WHERE key='active_settings'").fetchone()
+                    return json.loads(active[0]) if active else []
+            return [json.loads(r['data']) for r in self.db.execute('SELECT data FROM objects WHERE kind=? ORDER BY id', (self.key(kind),))]
 
     def config(self):
-        return {kind: self.objects(kind) for kind in ('devices', 'accounts', 'groups', 'routes', 'settings')}
+        with self.lock:
+            return self._config()
+
+    def _config(self):
+        conf={kind:self.objects(kind) for kind in ('devices','accounts','groups','routes','settings')}
+        from .tenancy import current
+        if current.get():
+            row=self.db.execute('SELECT timezone FROM tenants WHERE id=?',(current.get(),)).fetchone()
+            conf['timezone']=row[0] if row else 'UTC'
+            for kind in ('accounts','groups','routes'):
+                for obj in conf[kind]:
+                    obj['tenant_id']=current.get()
+                    if kind=='routes': obj['timezone']=conf['timezone']
+        return conf
+
+    def live_account(self,identity):
+        with self.lock:
+            return bool(self.db.execute("SELECT 1 FROM objects o JOIN tenants t ON o.kind=t.id||':accounts' WHERE o.id=? AND t.active=1",(identity,)).fetchone())
+
+    def pending(self):
+        from .tenancy import current
+        with self.lock:
+            row=self.db.execute('SELECT data FROM published WHERE tenant_id=?',(current.get(),)).fetchone()
+            return not row or json.loads(row[0])!=self.config()
+
+    def aggregate(self,own=None):
+        from .tenancy import current
+        result={k:[] for k in ('devices','accounts','groups','routes','settings')}
+        with self.lock:
+            rows=self.db.execute('SELECT p.* FROM published p JOIN tenants t ON t.id=p.tenant_id WHERE t.active=1').fetchall()
+            configs=[json.loads(r['data']) for r in rows if own is None or r['tenant_id']!=current.get()]
+            if own is not None: configs.append(own)
+            for conf in configs:
+                for kind in result:
+                    if kind!='settings': result[kind].extend(conf[kind])
+            active=self.db.execute("SELECT value FROM platform WHERE key='active_settings'").fetchone()
+            result['settings']=json.loads(active[0]) if active else []
+            if own is not None:
+                admin=self.db.execute('SELECT admin FROM tenants WHERE id=?',(current.get(),)).fetchone()
+                if admin and admin[0]: result['settings']=own['settings']
+        return result
