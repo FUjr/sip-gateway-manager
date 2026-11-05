@@ -130,7 +130,7 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
   const external = {
     icon: "phone",
     title: "运营商网络 / 外部号码",
-    text: outbound ? matchName(route) : "来自外部（不筛选主叫号码）",
+    text: outbound ? matchName(route) : `${route.medium === "voice" ? "主叫" : "发信号码"} · ${matchName(route)}`,
   };
   if (outbound) nodes.push(external);
   else nodes.unshift(external);
