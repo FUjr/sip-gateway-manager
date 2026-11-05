@@ -109,3 +109,14 @@ The web interface supports Simplified Chinese, Traditional Chinese and English. 
 follows the browser language; the language selector on the login page and toolbar saves your
 choice on this browser. Switching languages preserves open forms and does not change names,
 SIP credentials or the tenant timezone used by routing schedules.
+
+## Open source and contributions
+
+SIP Gateway Manager is licensed under [GPL-3.0](LICENSE). See
+[CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and
+[SECURITY.md](SECURITY.md) for handling vulnerabilities and sensitive data.
+
+QModem can use the line enrollment JSON from the connection panel to configure
+its outbound SIP service. Enrollment exports contain the SIP password: treat them
+as credentials, import them only into your own gateway, and never attach them
+to public issues. Publish saved platform rules before testing calls or SMS.
