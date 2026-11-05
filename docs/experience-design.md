@@ -1,47 +1,30 @@
-# SIP Gateway WebUI
+# SIP 网关界面设计
 
-## Navigation
+## 导航
 
-- 概览: counts, SIM lines, extensions, live registration, and routing shortcuts.
-- 网关: physical gateways and their SIM accounts.
-- SIP 账户: SIM lines and client extensions, connection credentials, enablement.
-- 分机组: reusable groups of extensions.
-- 电话路由 / 短信路由: ordered rule cards and editable topology.
-- 短信记录: per-recipient status and retry.
-- 服务器设置: admin-only transport parameters.
-- 账户与租户: timezone/password; admin-only tenant and registration management.
+- 概览：资源数量、SIM 线路、分机、实时注册状态和路由快捷入口。
+- 网关：物理网关及其 SIM 账户。
+- SIP 账户：SIM 线路与客户端分机、连接凭据和启用状态。
+- 分机组：可复用的分机集合。
+- 电话路由／短信路由：按顺序排列的规则卡片与可编辑拓扑图。
+- 短信记录：各目标的投递状态与重试情况。
+- 服务器设置：仅管理员可修改的传输参数。
+- 账号与租户：时区与密码，以及仅管理员可操作的租户和注册管理。
 
-Use established SIP and routing terms. Keep explanations for consequential states
-and errors. Avoid additional service concepts or instructional dashboard text.
+使用通行的 SIP 与路由术语。对影响操作结果的状态和错误提供说明，避免引入额外的服务概念或在概览页堆放教程文字。
 
-## Rules
+## 路由规则
 
-Incoming rules match original caller/sender numbers; outgoing rules match target
-numbers. Select source accounts, number conditions, destination, and optional
-weekday/time windows. Show the source, router, target and external number in the
-editable topology. Keep route tests in a collapsible panel. Test inputs invalidate
-old answers. Saved and applied versions can be tested separately.
+呼入规则匹配原始主叫或短信发送方号码，呼出规则匹配目标号码。编辑内容包括来源账户、号码条件、目标，以及可选的星期和时间段。可编辑拓扑图展示来源、路由器、目标与外部号码。规则测试放在可折叠面板内；修改测试输入后，旧结果失效。已保存和已应用的配置可分别测试。
 
-Preserve restrictions and unrelated routes. Versioned atomic rule-set updates
-reject stale edits. Reuse identical groups without mutating shared memberships.
-No rule implies rejection of external communication. Internal client extensions
-resolve within the current tenant before external routing.
+编辑时保留已有约束和无关路由。规则集采用带版本校验的原子更新，拒绝过期编辑。复用相同分机组时，不修改其他规则共用的成员关系。没有匹配规则时拒绝外部通信。内部客户端分机先在当前租户内解析，再考虑外部路由。
 
-## State and credentials
+## 状态与凭据
 
-Saving and applying are separate operations. Pending state remains visible in the
-shared header and beside connection credentials. Default login username is empty;
-password managers may fill previously saved credentials. SIP passwords are masked
-until requested, and account IDs remain separate from internal extension numbers.
+保存与应用是两个独立操作。公共页头和连接凭据旁持续显示待应用状态。登录用户名初始为空，密码管理器可填充已保存的凭据。SIP 密码默认隐藏，用户主动查看时才显示。账户 ID 与内部短号分别展示。
 
-Live registration comes from Asterisk AMI contacts, filtered to accounts owned by
-the current tenant. Enabled and reachable are distinct. If querying Asterisk
-fails, show unknown status rather than inventing offline/online state. No contact
-address, credential, or other tenant account is returned in the status response.
+实时注册状态取自 Asterisk AMI 的联系人信息，仅返回当前租户拥有的账户。启用状态与可达状态分开显示。查询 Asterisk 失败时显示“未知”，不能推测为离线或在线。状态响应不得返回联系地址、凭据或其他租户的账户。
 
-## Layout
+## 布局
 
-Light navigation, compact tables, and bordered resource/route cards share spacing,
-color and typography tokens. Desktop uses a fixed sidebar and two resource columns;
-mobile uses scrollable navigation and one column. Topology nodes stack vertically
-on mobile. All controls keep labels, focus styles and keyboard access.
+导航、紧凑表格及带边框的资源和路由卡片，共用间距、颜色与字体样式变量。桌面端使用固定侧栏和双列资源布局；移动端使用可滚动导航与单列布局，拓扑节点纵向排列。所有控件须保留标签、焦点样式与键盘操作能力。

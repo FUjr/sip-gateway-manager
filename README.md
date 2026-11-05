@@ -1,73 +1,52 @@
 # SIP Gateway Manager
 
-Authenticated, multi-tenant SIP management for Asterisk 22: device modem accounts,
-external SIP clients, client groups, independent voice/SMS routes, and QModem JSON enrollment.
-The Compose stack has exactly two containers: Asterisk plus FastAPI/SQLite, and a React/Nginx frontend.
+面向 Asterisk 22 的多租户 SIP 网关管理平台，提供登录认证、蜂窝模组账户、外部 SIP 客户端、分机组、独立的电话与短信路由，以及 QModem JSON 配置导出。
 
-## Start
+Docker Compose 部署包含两个容器：一个运行 Asterisk、FastAPI 和 SQLite，另一个运行 React 前端与 Nginx。
 
-1. Configure `AMI_SECRET` (24+ random characters) in `.env` and install a trusted certificate in `certs/fullchain.pem` and `certs/privkey.pem`.
-2. Run `docker compose up -d --build`, open HTTPS port 8443 and register the first account. It becomes the platform administrator and owns its own tenant.
-3. Public registration is closed automatically. Administrators can create tenants or enable registration under **账号与租户**. Each tenant has one login and independently owned lines, terminals and routing rules.
-4. Set the public hostname under administrator connection settings, apply it, create a gateway and one line per modem, then add SIP terminals. Export the line enrollment JSON for QModem.
-5. Use **电话规则** and **短信规则** to edit source, number, weekdays/time windows and destinations. Click a topology to edit. Save, rehearse, then apply. Applying one tenant preserves other tenants' unpublished drafts.
+## 快速开始
 
-Login passwords require 12–128 characters and are stored using salted scrypt. SIP credentials remain independent and require at least 16 characters. Internal short numbers are local to each tenant. Number conditions match the caller/sender for incoming traffic and destination for outgoing traffic. Time windows use the tenant timezone, include the start and exclude the end; overnight windows belong to their starting weekday. Offline SMS retries retain their original targets.
+1. 在 `.env` 中设置 `AMI_SECRET`，使用至少 24 个随机字符；将受信任的 TLS 证书及私钥放入 `certs/fullchain.pem` 和 `certs/privkey.pem`。
+2. 执行 `docker compose up -d --build`，通过 HTTPS 端口 8443 访问页面并注册首个账户。该账户成为平台管理员，同时拥有自己的租户。
+3. 首个账户创建后，公开注册自动关闭。管理员可在“账号与租户”中创建租户或重新开放注册。每个租户使用独立的登录账户，分别管理自己的线路、终端和路由规则。
+4. 在管理员的连接设置中填写对外服务域名并应用配置。创建网关，为每个模组创建一条线路，再添加 SIP 终端。线路的连接信息可导出为供 QModem 使用的 JSON 配置。
+5. 在“电话规则”和“短信规则”中设置来源、号码条件、星期、时间段与目标。点击拓扑图可编辑规则；保存后先进行规则测试，再应用配置。应用某个租户的配置不会发布其他租户尚未应用的草稿。
 
-Use a **new data volume** for this version: legacy single-admin data is deliberately rejected, never deleted. Preserve the original volume for rollback. Tenant removal revokes access, cancels pending SMS and removes resources; connected calls finish naturally. Retired SIP account identities cannot be reused by another tenant.
+登录密码须为 12～128 个字符，使用带盐的 scrypt 存储。SIP 凭据独立于登录密码，密码至少为 16 个字符。内部短号仅在所属租户内有效。呼入规则匹配主叫或短信发送方号码，呼出规则匹配目标号码。时间段使用租户时区，包含开始时刻、不包含结束时刻；跨午夜的时间段归属于开始日期对应的星期。离线短信重试沿用首次匹配的目标。
 
-Hostname changes require a PBX restart after applying. Transport/RTP port changes require a restart with matching port mappings. Back up `gateway-data` securely. Stop with `docker compose down` without `-v` to retain production data.
+此版本需要使用**新的数据卷**：系统会拒绝加载旧版单管理员数据，但不会删除它。请保留旧数据卷以便回滚。删除租户会撤销其访问权限、取消待投递短信并移除资源；已接通的电话自然结束。已注销的 SIP 账户标识不能由其他租户复用。
 
-## WebUI
+修改域名后，需要先应用配置，再重启 PBX。修改传输端口或 RTP 端口时，还需同步调整端口映射并重启。请妥善备份 `gateway-data` 数据卷。停止服务时使用 `docker compose down`，不要添加 `-v`，以保留生产数据。
 
-The overview lists SIM lines and SIP extensions with live Asterisk registration
-status. Navigation exposes gateways, SIP accounts, extension groups, phone routing,
-SMS routing, delivery history, and account/tenant settings directly.
+## 网页管理
 
-Phone and SMS routes have separate graphical editors. Rules support source
-accounts, destination or caller/sender number conditions, weekdays and time windows
-in the tenant timezone. Click a topology to edit, or reorder cards by dragging or
-using the move controls. Multi-extension voice targets ring together; SMS targets
-receive independent deliveries. Route tests use the same backend resolver and can
-select saved or applied configuration without placing calls or sending messages.
+概览页展示 SIM 线路、SIP 分机及其在 Asterisk 中的实时注册状态。导航栏可直接进入网关、SIP 账户、分机组、电话路由、短信路由、短信记录，以及账号与租户设置。
 
-Saved changes require **应用配置**. The persistent pending indicator and connection
-credential panel warn when saved changes are not active. SIP passwords are hidden
-by default. The login username starts empty; browser password-manager autofill is
-supported. Tenant data and registration status are scoped to the current login.
+电话与短信路由使用独立的图形编辑器，支持来源账户、目标或主叫/发送方号码条件，以及按租户时区计算的星期和时间段。点击拓扑图可编辑规则，通过拖动卡片或移动按钮可调整顺序。电话发送到多个分机时同时振铃；短信则为每个目标独立投递。规则测试与实际路由共用后端解析逻辑，可选择已保存或已应用的配置，不会拨打电话或发送短信。
 
-See [the UI design](docs/experience-design.md).
+保存修改后，还需点击“应用配置”。页面顶部的待应用提示和连接凭据面板会标明哪些修改尚未生效。SIP 密码默认隐藏；登录用户名初始为空，支持浏览器密码管理器自动填充。租户数据与注册状态均按当前登录账户隔离。
 
-## Routing
+界面约定见[界面设计说明](docs/experience-design.md)。
 
-A **device account** identifies one modem, not an entire router. Inbound rules select device sources
-and client/group destinations. Outbound rules select client sources and a device destination.
-SMS and voice have independent enabled flags and rules. Rules match exact numbers, prefixes, or any
-number; lower priority runs first, ties sort by rule ID, and only the first matching rule runs.
-No match rejects the request. Client-to-client numeric extensions support internal voice and SMS.
-Voice groups ring eligible registered members in parallel; the first answer wins.
-SMS groups create an independent durable delivery for every eligible member.
+## 路由与短信投递
 
-SMS acceptance (`202`) follows durable SQLite insertion. Delivery is recorded only after a final
-SIP response, not the AMI action acknowledgement. Offline recipients retry independently, starting
-at 30 seconds and capped at 5 minutes; registration wakes waiting deliveries. Default TTL is 7 days.
-Bodies are erased when all targets finish or TTL expires; delivery metadata is retained 30 days.
-Stable per-target delivery IDs let QModem's managed sender deduplicate cellular sends. Ordinary
-external SIP clients may receive duplicates after a lost acknowledgement (at-least-once delivery).
-Messages are UTF-8 text/plain, at most 4096 bytes. This is SIP MESSAGE routing, not SMS-over-IMS.
+一个**设备账户**对应一个模组，而非整台路由器。呼入规则选择设备来源与客户端或分机组目标；呼出规则选择客户端来源与设备目标。短信和电话分别启用、分别配置规则。号码条件支持精确匹配、前缀匹配和任意号码。规则按优先级数值从小到大执行，相同优先级按规则 ID 排序，只执行第一条匹配规则；没有匹配规则时拒绝请求。客户端可通过数字分机号进行租户内电话和短信通信。
 
-## Security and operation
+电话分机组对符合条件且已注册的成员同时振铃，首个接听者获得通话。短信分机组为每个符合条件的成员创建独立、持久化的投递任务。
 
-Only HTTPS frontend, SIP TLS, and RTP are published. AMI binds to loopback; MESSAGE ingress and
-completion callbacks use a private Unix socket. The WebUI uses an authenticated HttpOnly session,
-CSRF checks, login throttling, and no public internal callback endpoints. Credentials and message history are restricted to their owning tenant.
+短信写入 SQLite 并持久化后，才返回接受响应 `202`。收到最终 SIP 响应后才记录投递结果，AMI 操作确认不代表投递成功。离线目标独立重试，间隔从 30 秒开始，最长为 5 分钟；目标重新注册时会唤醒等待中的投递。默认有效期为 7 天。所有目标处理完成或有效期届满后清除正文，投递元数据保留 30 天。
 
-Asterisk's image is pinned by digest and the matching module source archive by SHA-256.
-Accounts use TLS, digest authentication, NAT contact rewriting and anchored RTP. External clients
-must support SIP TLS and PCMA/PCMU. There is no built-in WebRTC softphone or automatic TLS issuer.
-Health checks require both the backend and the custom Asterisk module.
+每个目标使用稳定的投递 ID，便于 QModem 受控发送端对蜂窝短信发送去重。普通外部 SIP 客户端在确认响应丢失后可能收到重复短信，即至少投递一次。消息使用 UTF-8 编码的 `text/plain`，最大为 4096 字节。本项目处理 SIP MESSAGE 路由，不实现 IMS 短信。
 
-## Validation
+## 安全与运维
+
+对外仅开放 HTTPS 前端、SIP TLS 和 RTP。AMI 绑定本地回环地址，MESSAGE 接入与完成回调使用内部 Unix 套接字。网页管理使用带 HttpOnly 属性的认证会话、CSRF 校验和登录限流，不公开内部回调接口。凭据和消息历史仅对所属租户开放。
+
+Asterisk 镜像按摘要固定，对应模块的源码归档使用 SHA-256 校验。账户使用 TLS、摘要认证、NAT 联系地址重写，并由服务器中继 RTP。外部客户端须支持 SIP TLS 和 PCMA/PCMU。本项目不内置 WebRTC 软电话，也不自动签发 TLS 证书。健康检查同时检查后端与自定义 Asterisk 模块。
+
+漏洞报告与敏感信息处理方式见[安全说明](SECURITY.md)。
+
+## 验证
 
 ```sh
 python3 -m venv .venv
@@ -80,43 +59,38 @@ npx playwright install chromium
 npx playwright test
 ```
 
-Browser tests mock the API with isolated fixtures and need only a frontend server; they do not
-modify the running gateway. Set `WEB_TEST_URL=http://localhost:5173` when using the Vite dev server.
-An existing Chromium installation can be selected with `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.
-The real SIP test runs from the repository root:
-`SIP_TEST_PORT=15061 WEB_TEST_URL=https://localhost:28443 .venv/bin/python tests/protocol.py`.
-It requires a trusted test certificate for `sip.test` and creates test accounts/routes, so run it
-only against a disposable stack. It covers TLS registration, digest authentication, internal/group
-voice setup and bidirectional internal RTP, bidirectional SMS, per-recipient offline recovery and stable-ID deduplication.
+浏览器测试通过隔离的测试数据模拟 API，只需前端服务，不修改运行中的网关。使用 Vite 开发服务器时，设置 `WEB_TEST_URL=http://localhost:5173`。可通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 指定已有的 Chromium。
 
-QModem target builds and service/import tests are separate from physical acceptance. Two real
-modems with concurrent cellular calls, PCM traffic, AT/ADB recovery and SMS sends still require DUT
-validation. No firmware flash or production deployment is performed by these tests.
+实际 SIP 协议测试需从仓库根目录运行：
 
-## Release deployment
+```sh
+SIP_TEST_PORT=15061 WEB_TEST_URL=https://localhost:28443 .venv/bin/python tests/protocol.py
+```
 
-Tagging `v*` runs GitHub Actions validation and publishes two amd64 images in
-`sip-gateway-manager-images-amd64.tar.gz`, `compose.release.yaml` and `SHA256SUMS`.
-Verify checksums, load the archive using `docker load`, configure `.env` and TLS
-certificates as above, then run
-`RELEASE_TAG=v1.0.0 docker compose -f compose.release.yaml up -d --wait`.
-The release uses a fresh named data volume. Preserve previous service files and
-volumes until the new service and gateway registration have been verified.
+该测试需要为 `sip.test` 准备受信任的测试证书，并会创建测试账户和路由，因此只能在可丢弃的测试环境中运行。覆盖内容包括 TLS 注册、摘要认证、内部与分机组呼叫建立、内部双向 RTP、双向短信、按目标独立的离线恢复，以及稳定投递 ID 去重。
 
-## Interface languages
+QModem 目标构建、服务测试和配置导入测试，与实机验收分开进行。两个真实模组并发蜂窝通话、PCM 数据传输、AT/ADB 恢复及短信发送，仍需设备验证。上述测试不会刷写固件或部署生产服务。
 
-The web interface supports Simplified Chinese, Traditional Chinese and English. It initially
-follows the browser language; the language selector on the login page and toolbar saves your
-choice on this browser. Switching languages preserves open forms and does not change names,
-SIP credentials or the tenant timezone used by routing schedules.
+## 发布版本部署
 
-## Open source and contributions
+推送 `v*` 标签后，GitHub Actions 会执行验证，并发布两个 amd64 镜像，交付文件为 `sip-gateway-manager-images-amd64.tar.gz`、`compose.release.yaml` 和 `SHA256SUMS`。
 
-SIP Gateway Manager is licensed under [GPL-3.0](LICENSE). See
-[CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and
-[SECURITY.md](SECURITY.md) for handling vulnerabilities and sensitive data.
+校验文件摘要后，使用 `docker load` 加载镜像归档，按前述步骤配置 `.env` 和 TLS 证书，再运行以下命令；请将示例版本号替换为实际下载的版本：
 
-QModem can use the line enrollment JSON from the connection panel to configure
-its outbound SIP service. Enrollment exports contain the SIP password: treat them
-as credentials, import them only into your own gateway, and never attach them
-to public issues. Publish saved platform rules before testing calls or SMS.
+```sh
+RELEASE_TAG=v1.0.0 docker compose -f compose.release.yaml up -d --wait
+```
+
+发布部署使用新的命名数据卷。确认新服务及网关注册正常前，请保留原有服务文件和数据卷。
+
+## 界面语言
+
+网页界面支持简体中文、繁体中文和英语，首次访问时跟随浏览器语言。登录页和工具栏中的语言选择器会在当前浏览器保存选择。切换语言会保留已打开的表单，不会修改资源名称、SIP 凭据或路由时间表所用的租户时区。
+
+## 开源与贡献
+
+SIP Gateway Manager 采用 [GNU GPL v3 许可证](LICENSE)。贡献方式见[贡献指南](CONTRIBUTING.md)。许可证正文保留官方英文原文。
+
+QModem 可使用线路连接面板导出的 JSON 配置，设置 Outbound SIP 服务。在 QModem 的 Outbound 区域点击“Import enrollment JSON”，粘贴导出内容后导入，核对参数并保存应用。本平台可通过网页管理 Asterisk 的电话与短信路由规则；测试电话或短信前，须先应用已保存的平台规则。
+
+导出的配置包含 SIP 密码，应按凭据保管，仅导入自己的网关，切勿附在公开的问题报告中。配置格式见[配置下发说明](docs/provisioning.md)。

@@ -1,19 +1,9 @@
-# Security
+# 安全说明
 
-SIP Gateway Manager stores SIP credentials and tenant configuration. Do not
-include enrollment JSON, database files, environment files, certificates, or
-raw SIP traces in public issues or pull requests. Use synthetic examples and
-redact telephone numbers, authentication headers, host identities, and tokens.
+SIP Gateway Manager 保存 SIP 凭据和租户配置。不要在公开的问题报告或拉取请求中附上连接配置 JSON、数据库、环境变量文件、证书或原始 SIP 抓包。示例请使用虚构数据，并隐去电话号码、认证头、主机标识和令牌。
 
-Report suspected vulnerabilities privately through GitHub private vulnerability
-reporting when it is available. Otherwise contact the repository owner privately
-before disclosing details. Do not post a working exploit or production secrets
-in a public issue.
+发现疑似漏洞时，如仓库已启用 GitHub 私密漏洞报告，请通过该渠道提交；否则，请先私下联系仓库所有者，再披露细节。不要在公开的问题报告中发布可直接利用的攻击代码或生产凭据。
 
-Use trusted TLS certificates, unique AMI and SIP secrets, restricted management
-access, and protected backups. Keep the AMI and internal routing API private.
-Registration closes after the first administrator is created; review account and
-tenant permissions before opening the service to users.
+部署时请使用受信任的 TLS 证书、独立的 AMI 与 SIP 密钥，限制管理入口的访问，并保护备份数据。AMI 和内部路由 API 不应对外开放。首个管理员创建后，公开注册会自动关闭；对其他用户开放服务前，请检查账户和租户权限。
 
-Phone calls and SMS can incur charges. Test with isolated accounts and explicit
-permission before using real numbers or changing a production deployment.
+电话和短信可能产生费用。使用真实号码或修改生产部署前，须获得明确授权，并先使用隔离账户进行测试。

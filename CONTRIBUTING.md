@@ -1,14 +1,9 @@
-# Contributing
+# 贡献指南
 
-Contributions are licensed under GPL-3.0, as described in LICENSE. Keep changes
-focused and include tests for routing, tenant isolation, configuration publication,
-or SIP behavior affected by the change.
+贡献内容采用 [GNU GPL v3 许可证](LICENSE)。每次修改应围绕一个明确的问题；涉及路由、租户隔离、配置应用或 SIP 行为时，请补充相应测试。
 
-Use synthetic accounts and isolated containers. Never commit deployment data,
-credentials, enrollment exports, certificates, or captures containing real calls.
-Do not run tests against a production PBX or send real calls/SMS without permission.
+请使用虚构账户和隔离的容器环境。不要提交部署数据、凭据、导出的连接配置、证书，或包含真实通话信息的抓包文件。未经授权，不要在生产 PBX 上运行测试或拨打真实电话、发送真实短信。
 
-Follow the validation commands in README.md and the GitHub Actions workflow.
-Describe the behavior before and after the change, tests run, and any remaining
-hardware or network validation. Host or simulated SIP tests do not establish
-real modem compatibility.
+验证方法见 [README](README.md#验证) 和 GitHub Actions 工作流。提交说明应描述修改前后的行为、已执行的测试，以及尚未完成的硬件或网络验证。主机测试或模拟 SIP 测试不能证明真实模组的兼容性。
+
+项目说明文档统一使用中文；技术名称、命令、路径和接口字段保留原文。许可证正文使用官方英文原文。
