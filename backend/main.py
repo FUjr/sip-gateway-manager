@@ -23,6 +23,8 @@ apply_lock = asyncio.Lock()
 
 from .tenancy import install, current
 admin = install(app, store)
+from .linphone import install as install_linphone
+install_linphone(app, store, DATA)
 
 @app.get('/api/v1/health')
 def health():

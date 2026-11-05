@@ -123,3 +123,20 @@ def test_live_registration_status_is_scoped_and_failure_is_unknown(server, monke
     async def unavailable(): raise OSError('AMI unavailable')
     monkeypatch.setattr(backend.ami, 'contacts', unavailable)
     assert a.get('/api/v1/status').json()['registrations'] is None
+
+
+def test_linphone_provisioning_is_tenant_scoped(server):
+    m=server
+    a,owner=register(m)
+    a.put('/api/v1/platform/registration',json={'enabled':True})
+    b,other=register(m,'second')
+    identity=owner['id']+'_phone'
+    assert a.put('/api/v1/accounts/'+identity,json={'id':identity,'name':'Phone','kind':'client',
+        'extension':'200','password':'abcdefghijklmnop'}).status_code==200
+    assert a.post('/api/v1/apply').status_code==200
+    assert b.post('/api/v1/accounts/'+identity+'/linphone').status_code==404
+    assert b.delete('/api/v1/accounts/'+identity+'/linphone').status_code==404
+    path=a.post('/api/v1/accounts/'+identity+'/linphone').json()['path']
+    assert b.get(path).status_code==200  # The short-lived URL is a bearer credential.
+    assert a.delete('/api/v1/accounts/'+identity).status_code==200
+    assert b.get(path).status_code==404

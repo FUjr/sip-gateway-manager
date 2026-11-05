@@ -107,6 +107,7 @@ test.beforeEach(async ({ page }, info) => {
   let logged = false,
     pending = false;
   let modelReads = 0;
+  let provisioning = 0;
   const model = () => ({
     revision:
       info.title.startsWith("stale") && modelReads++ > 0
@@ -184,6 +185,10 @@ test.beforeEach(async ({ page }, info) => {
         admin: 1,
         timezone: "Asia/Shanghai",
       });
+    if (path === "accounts/phone/linphone") {
+      if (req.method() === "DELETE") return send({ ok: true });
+      return send({ path: "/api/v1/linphone/" + (++provisioning) + ".xml", expires: Date.now() / 1000 + 600 });
+    }
     if (path === "config") return send(conf);
     if (path === "experience") return send(model());
     if (path === "status")
@@ -337,13 +342,13 @@ test("account creation validates duplicate extension and marks connection creden
     .getByRole("row")
     .filter({ has: page.getByText("Mac", { exact: true }) });
   await row.getByRole("button", { name: "连接配置", exact: true }).click();
-  await expect(page.locator("#configuration-editor .notice")).toContainText(
+  await expect(page.locator("#configuration-editor > .notice")).toContainText(
     "配置未应用",
   );
   await expect(page.locator(".connection-details")).toContainText("1001");
   await page.getByRole("button", { name: "应用配置", exact: true }).click();
   await expect(page.locator(".apply-state")).toContainText("配置已应用");
-  await expect(page.locator("#configuration-editor .notice")).toHaveCount(0);
+  await expect(page.locator("#configuration-editor > .notice")).toHaveCount(0);
 });
 test("connection password is hidden and mobile stays within viewport", async ({
   page,
@@ -535,4 +540,20 @@ test("translated errors follow language changes and SIP ports stay literal", asy
     .click();
   await expect(page.getByRole("table")).toContainText("15061");
   await expect(page.getByRole("table")).not.toContainText("15,061");
+});
+
+
+test("Linphone QR provisioning generates, rotates and revokes a link on mobile", async ({ page }) => {
+  await page.locator(".resource-row").filter({ hasText: "我的手机" })
+    .getByRole("button", { name: "连接配置", exact: true }).click();
+  await expect(page.getByRole("button", { name: "生成二维码与配置链接" })).toBeVisible();
+  await page.getByRole("button", { name: "生成二维码与配置链接" }).click();
+  await expect(page.getByLabel("配置链接", { exact: true })).toHaveValue(/\/api\/v1\/linphone\/1\.xml$/);
+  await expect(page.locator(".linphone-export svg")).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "重新生成配置链接" }).click();
+  await expect(page.getByLabel("配置链接", { exact: true })).toHaveValue(/\/2\.xml$/);
+  await page.getByRole("button", { name: "撤销配置链接" }).click();
+  await expect(page.locator(".linphone-export")).toHaveCount(0);
 });

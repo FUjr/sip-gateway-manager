@@ -1092,5 +1092,45 @@
   "无效的星期设置": {
     "en": "Invalid weekdays",
     "zh-TW": "無效的星期設置"
+  },
+  "Linphone 快速配置": {
+    "en": "Linphone quick setup",
+    "zh-TW": "Linphone 快速設定"
+  },
+  "使用已应用的账户配置。手机端扫描二维码，或在 Linphone 的配置链接入口粘贴链接。": {
+    "en": "Uses the applied account configuration. Scan the QR code on mobile, or paste the link in Linphone’s provisioning link screen.",
+    "zh-TW": "使用已套用的帳戶設定。手機端掃描 QR 碼，或在 Linphone 的設定連結入口貼上連結。"
+  },
+  "导入会覆盖 Linphone 的首个账户，请先确认。链接包含账户访问权限，10 分钟后失效，请勿公开分享。": {
+    "en": "Import replaces the first Linphone account. Confirm before importing. The link grants account access and expires in 10 minutes; do not share it publicly.",
+    "zh-TW": "匯入會覆蓋 Linphone 的首個帳戶，請先確認。連結包含帳戶存取權限，10 分鐘後失效，請勿公開分享。"
+  },
+  "重新生成配置链接": {
+    "en": "Regenerate provisioning link",
+    "zh-TW": "重新產生設定連結"
+  },
+  "生成二维码与配置链接": {
+    "en": "Generate QR code and provisioning link",
+    "zh-TW": "產生 QR 碼與設定連結"
+  },
+  "Linphone 配置二维码": {
+    "en": "Linphone provisioning QR code",
+    "zh-TW": "Linphone 設定 QR 碼"
+  },
+  "配置链接": {
+    "en": "Provisioning link",
+    "zh-TW": "設定連結"
+  },
+  "失效时间：{time}": {
+    "en": "Expires: {time}",
+    "zh-TW": "失效時間：{time}"
+  },
+  "复制配置链接": {
+    "en": "Copy provisioning link",
+    "zh-TW": "複製設定連結"
+  },
+  "撤销配置链接": {
+    "en": "Revoke provisioning link",
+    "zh-TW": "撤銷設定連結"
   }
 }

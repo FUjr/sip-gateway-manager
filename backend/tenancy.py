@@ -3,6 +3,7 @@ import contextvars
 import hashlib
 import hmac
 import json
+import re
 import secrets
 import sqlite3
 import time
@@ -115,7 +116,8 @@ def install(app,store):
     @app.middleware('http')
     async def authenticate(request,call_next):
         context=None
-        if request.url.path not in ('/api/v1/login','/api/v1/register','/api/v1/auth/state','/api/v1/health'):
+        public_provision = request.method in ('GET', 'HEAD') and re.fullmatch(r'/api/v1/linphone/[A-Za-z0-9_-]{43}\.xml', request.url.path)
+        if not public_provision and request.url.path not in ('/api/v1/login','/api/v1/register','/api/v1/auth/state','/api/v1/health'):
             key=hashlib.sha256(request.cookies.get('session','').encode()).hexdigest()
             with store.lock:
                 row=store.db.execute('SELECT t.*,s.csrf FROM sessions s JOIN identities i ON i.token=s.token JOIN tenants t ON t.id=i.tenant_id WHERE s.token=? AND s.expires>? AND t.active=1',(key,time.time())).fetchone()

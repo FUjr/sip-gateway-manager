@@ -1028,3 +1028,9 @@ summary {
     padding-top: 80px;
   }
 }
+
+.linphone-import { margin: 1.25rem 0; border-top: 1px solid var(--border, #ddd); padding-top: 1rem; }
+.linphone-export { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.linphone-export svg { background: white; padding: 12px; box-sizing: content-box; max-width: calc(100% - 24px); height: auto; }
+.linphone-export label, .linphone-export p { width: 100%; }
+.linphone-export input { display: block; width: 100%; box-sizing: border-box; }

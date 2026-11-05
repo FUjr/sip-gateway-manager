@@ -247,3 +247,58 @@ def test_cellular_inbound_accepts_registered_account_uri(gateway):
     assert route('alice','201')=='PJSIP/bob'
     assert route('alice','123;bad')==''
     assert route('missing','missing')==''
+
+
+def test_linphone_export_lifecycle_and_xml(gateway):
+    from xml.etree import ElementTree as ET
+    m,client=gateway;setup(client)
+    assert client.post('/api/v1/accounts/alice/linphone').status_code==409
+    assert client.post('/api/v1/apply').json()['applied']
+    assert client.post('/api/v1/accounts/modem1/linphone').status_code==404
+    assert client.post('/api/v1/accounts/missing/linphone').status_code==404
+    assert client.post('/api/v1/accounts/alice/linphone',headers={'X-CSRF-Token':''}).status_code==403
+    anonymous=TestClient(m.app,base_url='https://testserver')
+    assert anonymous.post('/api/v1/accounts/alice/linphone').status_code==401
+    first=client.post('/api/v1/accounts/alice/linphone').json()
+    path=first['path']
+    response=anonymous.get(path)
+    assert response.status_code==200
+    assert response.headers['cache-control']=='no-store'
+    assert anonymous.head(path).status_code==200
+    root=ET.fromstring(response.content)
+    ns={'c':'http://www.linphone.org/xsds/lpconfig.xsd'}
+    def value(section,key):
+        return root.find(f"c:section[@name='{section}']/c:entry[@name='{key}']",ns).text
+    assert value('auth_info_0','username')=='alice'
+    assert value('auth_info_0','passwd')=='abcdefghijklmnop'
+    assert value('proxy_0','reg_proxy').endswith(';transport=tls')
+    assert value('misc','transient_provisioning')=='1'
+    assert all(e.attrib['overwrite']=='true' for e in root.findall('c:section/c:entry',ns))
+    second=client.post('/api/v1/accounts/alice/linphone').json()['path']
+    assert anonymous.get(path).status_code==404
+    assert anonymous.get(second).status_code==200
+    assert client.delete('/api/v1/accounts/alice/linphone').status_code==200
+    assert anonymous.get(second).status_code==404
+    path=client.post('/api/v1/accounts/alice/linphone').json()['path']
+    with m.store.transaction() as db: db.execute('UPDATE linphone_tokens SET expires=0')
+    assert anonymous.get(path).status_code==404
+    path=client.post('/api/v1/accounts/alice/linphone').json()['path']
+    add(client,'accounts',{'id':'alice','name':'alice','kind':'client','extension':'200',
+        'password':'new_secret_12345678'})
+    assert client.post('/api/v1/apply').json()['applied']
+    assert anonymous.get(path).status_code==404
+    path=client.post('/api/v1/accounts/alice/linphone').json()['path']
+    root=ET.fromstring(anonymous.get(path).content)
+    assert value('auth_info_0','passwd')=='new_secret_12345678'
+    with m.store.transaction() as db:
+        db.execute('UPDATE tenants SET active=0 WHERE id=?',(__import__('backend.tenancy',fromlist=['current']).current.get(),))
+    assert anonymous.get(path).status_code==404
+
+
+def test_linphone_access_logs_redact_bearer_path():
+    import logging
+    from backend.linphone import RedactProvisioning
+    record=logging.LogRecord('uvicorn.access',20,'',0,'%s - "%s %s HTTP/%s" %s',
+        ('127.0.0.1','GET','/api/v1/linphone/synthetic-token.xml','1.1',200),None)
+    assert RedactProvisioning().filter(record)
+    assert 'synthetic-token' not in record.getMessage()

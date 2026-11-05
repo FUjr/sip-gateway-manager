@@ -1,5 +1,6 @@
 import { t, LanguageSwitcher, useLocale } from "./i18n";
 import { Rules } from "./rules";
+import { LinphoneImport } from "./linphone";
 import { TenantPanel, ScheduleEditor } from "./tenant";
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -1009,6 +1010,7 @@ function App() {
               <dt>{t("分机号")}</dt>
               <dd>{connection.extension}</dd>
             </dl>
+            {connection.kind === "client" && <LinphoneImport key={connection.id} identity={connection.id} api={api} run={run} />}
             <button onClick={() => setConnection(null)}>{t("关闭")}</button>
           </section>
         )}
