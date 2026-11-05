@@ -449,3 +449,90 @@ test("stale rule edits keep original revision across refresh", async ({
     "10099",
   );
 });
+
+test("language changes preserve route edits and user names", async ({
+  page,
+}) => {
+  await page
+    .getByRole("combobox", { name: "语言", exact: true })
+    .selectOption("en");
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".resource-row").filter({ hasText: "广电卡" }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Call routing", exact: true })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "Edit routing diagram: 广电客服通话",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel("Number to match", { exact: true })).toHaveValue(
+    "10099",
+  );
+  await page.getByLabel("Number to match", { exact: true }).fill("10000");
+  await page
+    .getByRole("combobox", { name: "Language", exact: true })
+    .selectOption("zh-TW");
+  await expect(page.getByLabel("匹配號碼", { exact: true })).toHaveValue(
+    "10000",
+  );
+  await expect(
+    page.getByRole("checkbox", { name: "我的手机", exact: true }),
+  ).toBeChecked();
+  await page.getByRole("checkbox", { name: "僅在指定時間生效" }).check();
+  await expect(
+    page.getByRole("checkbox", { name: "週一", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "語言", exact: true })
+    .selectOption("en");
+  await expect(
+    page.getByRole("checkbox", { name: "Mon", exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+});
+
+test("translated errors follow language changes and SIP ports stay literal", async ({
+  page,
+}) => {
+  await page
+    .getByRole("combobox", { name: "语言", exact: true })
+    .selectOption("en");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "SIP accounts", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Add account", exact: true }).click();
+  await page.getByLabel("Display name", { exact: true }).fill("测试账户");
+  await page.getByLabel("Extension number", { exact: true }).fill("8801");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(/extension/i);
+  await page
+    .getByRole("combobox", { name: "Language", exact: true })
+    .selectOption("zh-CN");
+  await expect(page.getByRole("alert")).toContainText("分机号已被使用");
+  await page
+    .getByRole("combobox", { name: "语言", exact: true })
+    .selectOption("en");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Server settings", exact: true })
+    .click();
+  await expect(page.getByRole("table")).toContainText("15061");
+  await expect(page.getByRole("table")).not.toContainText("15,061");
+});

@@ -1,0 +1,1096 @@
+{
+  "已停用": {
+    "en": "Disabled",
+    "zh-TW": "已停用"
+  },
+  "在线": {
+    "en": "Online",
+    "zh-TW": "在線"
+  },
+  "离线": {
+    "en": "Offline",
+    "zh-TW": "離線"
+  },
+  "状态未知": {
+    "en": "Unknown",
+    "zh-TW": "狀態未知"
+  },
+  "平台概览": {
+    "en": "Overview",
+    "zh-TW": "平臺概覽"
+  },
+  "网关": {
+    "en": "Gateways",
+    "zh-TW": "網關"
+  },
+  "SIM 线路": {
+    "en": "SIM lines",
+    "zh-TW": "SIM 線路"
+  },
+  "分机": {
+    "en": "Extensions",
+    "zh-TW": "分機"
+  },
+  "在线账户": {
+    "en": "Online accounts",
+    "zh-TW": "在線賬戶"
+  },
+  "添加线路": {
+    "en": "Add line",
+    "zh-TW": "添加線路"
+  },
+  "· 分机": {
+    "en": "· Extension",
+    "zh-TW": "· 分機"
+  },
+  "连接配置": {
+    "en": "Connection details",
+    "zh-TW": "連接配置"
+  },
+  "暂无 SIM 线路": {
+    "en": "No SIM lines",
+    "zh-TW": "暫無 SIM 線路"
+  },
+  "添加分机": {
+    "en": "Add extension",
+    "zh-TW": "添加分機"
+  },
+  "暂无分机": {
+    "en": "No extensions",
+    "zh-TW": "暫無分機"
+  },
+  "路由": {
+    "en": "Routing",
+    "zh-TW": "路由"
+  },
+  "条已启用": {
+    "en": "enabled",
+    "zh-TW": "條已啓用"
+  },
+  "电话路由": {
+    "en": "Call routing",
+    "zh-TW": "電話路由"
+  },
+  "短信路由": {
+    "en": "SMS routing",
+    "zh-TW": "短信路由"
+  },
+  "条规则": {
+    "en": "rules",
+    "zh-TW": "條規則"
+  },
+  "尚未选择": {
+    "en": "Not selected",
+    "zh-TW": "尚未選擇"
+  },
+  "通话": {
+    "en": "Calls",
+    "zh-TW": "通話"
+  },
+  "短信": {
+    "en": "SMS",
+    "zh-TW": "短信"
+  },
+  "所有号码": {
+    "en": "All numbers",
+    "zh-TW": "所有號碼"
+  },
+  "尚未选择来源": {
+    "en": "No source selected",
+    "zh-TW": "尚未選擇來源"
+  },
+  "拨号": {
+    "en": "call",
+    "zh-TW": "撥號"
+  },
+  "发短信": {
+    "en": "send SMS",
+    "zh-TW": "發短信"
+  },
+  "来源分机": {
+    "en": "Source extensions",
+    "zh-TW": "來源分機"
+  },
+  "来源线路": {
+    "en": "Source lines",
+    "zh-TW": "來源線路"
+  },
+  "选择来源": {
+    "en": "Select source",
+    "zh-TW": "選擇來源"
+  },
+  "出口线路": {
+    "en": "Outbound line",
+    "zh-TW": "出口線路"
+  },
+  "接收分机": {
+    "en": "Receiving extensions",
+    "zh-TW": "接收分機"
+  },
+  "外部号码": {
+    "en": "External number",
+    "zh-TW": "外部號碼"
+  },
+  "主叫": {
+    "en": "Caller",
+    "zh-TW": "主叫"
+  },
+  "发信号码": {
+    "en": "Sender",
+    "zh-TW": "發信號碼"
+  },
+  "规则流向示意": {
+    "en": "Routing diagram",
+    "zh-TW": "規則流向示意"
+  },
+  "概览": {
+    "en": "Overview",
+    "zh-TW": "概覽"
+  },
+  "SIP 账户": {
+    "en": "SIP accounts",
+    "zh-TW": "SIP 賬戶"
+  },
+  "分机组": {
+    "en": "Extension groups",
+    "zh-TW": "分機組"
+  },
+  "短信记录": {
+    "en": "SMS history",
+    "zh-TW": "短信記錄"
+  },
+  "服务器设置": {
+    "en": "Server settings",
+    "zh-TW": "服務器設置"
+  },
+  "账户与租户": {
+    "en": "Account and tenants",
+    "zh-TW": "賬戶與租戶"
+  },
+  "账号或密码不正确，请重新输入。": {
+    "en": "Incorrect username or password.",
+    "zh-TW": "賬號或密碼不正確，請重新輸入。"
+  },
+  "登录已过期，请刷新页面重新登录。": {
+    "en": "Session expired. Sign in again.",
+    "zh-TW": "登錄已過期，請刷新頁面重新登錄。"
+  },
+  "分机号已被使用，请换一个。": {
+    "en": "Extension number is already in use.",
+    "zh-TW": "分機號已被使用，請換一個。"
+  },
+  "请先添加网关设备，再选择账号所属设备。": {
+    "en": "Add a gateway before creating its SIM account.",
+    "zh-TW": "請先添加網關設備，再選擇賬號所屬設備。"
+  },
+  "来源账号与规则方向不一致，请重新选择。": {
+    "en": "Source account type does not match the route direction.",
+    "zh-TW": "來源賬號與規則方向不一致，請重新選擇。"
+  },
+  "目标账号与规则方向不一致，请重新选择。": {
+    "en": "Target account type does not match the route direction.",
+    "zh-TW": "目標賬號與規則方向不一致，請重新選擇。"
+  },
+  "请填写要匹配的号码或前缀。": {
+    "en": "Enter a number or prefix.",
+    "zh-TW": "請填寫要匹配的號碼或前綴。"
+  },
+  "媒体结束端口必须大于起始端口。": {
+    "en": "RTP end port must be greater than the start port.",
+    "zh-TW": "媒體結束端口必須大於起始端口。"
+  },
+  "创建管理员账户": {
+    "en": "Create administrator account",
+    "zh-TW": "創建管理員賬戶"
+  },
+  "注册账户": {
+    "en": "Create account",
+    "zh-TW": "註冊賬戶"
+  },
+  "登录管理平台": {
+    "en": "Sign in to manage your gateway",
+    "zh-TW": "登錄管理平臺"
+  },
+  "用户名": {
+    "en": "Username",
+    "zh-TW": "用戶名"
+  },
+  "密码": {
+    "en": "Password",
+    "zh-TW": "密碼"
+  },
+  "注册首个管理员": {
+    "en": "Create administrator",
+    "zh-TW": "註冊首個管理員"
+  },
+  "注册租户": {
+    "en": "Register tenant",
+    "zh-TW": "註冊租戶"
+  },
+  "登录": {
+    "en": "Sign in",
+    "zh-TW": "登錄"
+  },
+  "返回登录": {
+    "en": "Back to sign in",
+    "zh-TW": "返回登錄"
+  },
+  "数值越小越优先": {
+    "en": "Lower values have higher priority",
+    "zh-TW": "數值越小越優先"
+  },
+  "域名或 IP，不含协议前缀": {
+    "en": "Domain or IP, without a protocol prefix",
+    "zh-TW": "域名或 IP，不含協議前綴"
+  },
+  "还没有可选账号，请先在“SIM 卡与客户端”中添加。": {
+    "en": "No accounts available. Add a SIP account first.",
+    "zh-TW": "還沒有可選賬號，請先在“SIM 卡與客戶端”中添加。"
+  },
+  "请选择": {
+    "en": "Select",
+    "zh-TW": "請選擇"
+  },
+  "通话与短信": {
+    "en": "Calls and SMS",
+    "zh-TW": "通話與短信"
+  },
+  "主导航": {
+    "en": "Main navigation",
+    "zh-TW": "主導航"
+  },
+  "管理员": {
+    "en": "Administrator",
+    "zh-TW": "管理員"
+  },
+  "租户": {
+    "en": "Tenant",
+    "zh-TW": "租戶"
+  },
+  "退出登录": {
+    "en": "Sign out",
+    "zh-TW": "退出登錄"
+  },
+  "刷新状态": {
+    "en": "Refresh",
+    "zh-TW": "刷新狀態"
+  },
+  "端口变更尚未生效，需要管理员重启服务。": {
+    "en": "Port changes require an administrator to restart the service.",
+    "zh-TW": "端口變更尚未生效，需要管理員重啓服務。"
+  },
+  "配置已应用。": {
+    "en": "Configuration applied.",
+    "zh-TW": "配置已應用。"
+  },
+  "处理中…": {
+    "en": "Working…",
+    "zh-TW": "處理中…"
+  },
+  "应用配置": {
+    "en": "Apply configuration",
+    "zh-TW": "應用配置"
+  },
+  "配置未应用": {
+    "en": "Unapplied changes",
+    "zh-TW": "配置未應用"
+  },
+  "配置已应用": {
+    "en": "Configuration applied",
+    "zh-TW": "配置已應用"
+  },
+  "尚未应用配置": {
+    "en": "No configuration applied",
+    "zh-TW": "尚未應用配置"
+  },
+  "新建或修改的账户与路由尚未生效": {
+    "en": "Account and route changes are not active yet",
+    "zh-TW": "新建或修改的賬戶與路由尚未生效"
+  },
+  "刷新": {
+    "en": "Refresh",
+    "zh-TW": "刷新"
+  },
+  "来源": {
+    "en": "Source",
+    "zh-TW": "來源"
+  },
+  "目标": {
+    "en": "Target",
+    "zh-TW": "目標"
+  },
+  "状态": {
+    "en": "Status",
+    "zh-TW": "狀態"
+  },
+  "尝试": {
+    "en": "Attempts",
+    "zh-TW": "嘗試"
+  },
+  "SIP 响应": {
+    "en": "SIP response",
+    "zh-TW": "SIP 響應"
+  },
+  "已交付目标账号": {
+    "en": "Delivered to account",
+    "zh-TW": "已交付目標賬號"
+  },
+  "等待投递 / 重试": {
+    "en": "Pending / retrying",
+    "zh-TW": "等待投遞 / 重試"
+  },
+  "正在投递": {
+    "en": "Sending",
+    "zh-TW": "正在投遞"
+  },
+  "投递失败": {
+    "en": "Delivery failed",
+    "zh-TW": "投遞失敗"
+  },
+  "已过期": {
+    "en": "Expired",
+    "zh-TW": "已過期"
+  },
+  "重新投递": {
+    "en": "Retry",
+    "zh-TW": "重新投遞"
+  },
+  "暂时没有短信投递记录": {
+    "en": "No SMS deliveries",
+    "zh-TW": "暫時沒有短信投遞記錄"
+  },
+  "配置短信规则并实际收发后，这里会显示投递结果。": {
+    "en": "Delivery results appear here after SMS is sent or received.",
+    "zh-TW": "配置短信規則並實際收發後，這裏會顯示投遞結果。"
+  },
+  "编辑设置": {
+    "en": "Edit settings",
+    "zh-TW": "編輯設置"
+  },
+  "添加网关": {
+    "en": "Add gateway",
+    "zh-TW": "添加網關"
+  },
+  "添加账号": {
+    "en": "Add account",
+    "zh-TW": "添加賬號"
+  },
+  "添加规则": {
+    "en": "Add rule",
+    "zh-TW": "添加規則"
+  },
+  "添加群组": {
+    "en": "Add group",
+    "zh-TW": "添加羣組"
+  },
+  "名称 / 地址": {
+    "en": "Name / address",
+    "zh-TW": "名稱 / 地址"
+  },
+  "信息": {
+    "en": "Details",
+    "zh-TW": "信息"
+  },
+  "操作": {
+    "en": "Actions",
+    "zh-TW": "操作"
+  },
+  "无启用业务": {
+    "en": "No services enabled",
+    "zh-TW": "無啓用業務"
+  },
+  "启用": {
+    "en": "Enabled",
+    "zh-TW": "啓用"
+  },
+  "停用": {
+    "en": "Disabled",
+    "zh-TW": "停用"
+  },
+  "编辑": {
+    "en": "Edit",
+    "zh-TW": "編輯"
+  },
+  "删除": {
+    "en": "Delete",
+    "zh-TW": "刪除"
+  },
+  "添加 SIM 线路": {
+    "en": "Add SIM line",
+    "zh-TW": "添加 SIM 線路"
+  },
+  "暂无": {
+    "en": "No records: ",
+    "zh-TW": "暫無"
+  },
+  "暂无记录": {
+    "en": "No records",
+    "zh-TW": "暫無記錄"
+  },
+  "新增": {
+    "en": "Add ",
+    "zh-TW": "新增"
+  },
+  "请至少勾选一个来源账号。": {
+    "en": "Select at least one source account.",
+    "zh-TW": "請至少勾選一個來源賬號。"
+  },
+  "请至少勾选一个接听客户端。": {
+    "en": "Select at least one receiving extension.",
+    "zh-TW": "請至少勾選一個接聽客戶端。"
+  },
+  "已保存，尚未应用。": {
+    "en": "Saved. Apply configuration to activate changes.",
+    "zh-TW": "已保存，尚未應用。"
+  },
+  "显示名称": {
+    "en": "Display name",
+    "zh-TW": "顯示名稱"
+  },
+  "账户类型": {
+    "en": "Account type",
+    "zh-TW": "賬戶類型"
+  },
+  "所属设备": {
+    "en": "Gateway",
+    "zh-TW": "所屬設備"
+  },
+  "分机号": {
+    "en": "Extension number",
+    "zh-TW": "分機號"
+  },
+  "启用语音": {
+    "en": "Enable calls",
+    "zh-TW": "啓用語音"
+  },
+  "启用短信": {
+    "en": "Enable SMS",
+    "zh-TW": "啓用短信"
+  },
+  "账号启用": {
+    "en": "Enable account",
+    "zh-TW": "賬號啓用"
+  },
+  "客户端（可多选）": {
+    "en": "Extensions (multiple selection)",
+    "zh-TW": "客戶端（可多選）"
+  },
+  "业务": {
+    "en": "Service",
+    "zh-TW": "業務"
+  },
+  "语音": {
+    "en": "Calls",
+    "zh-TW": "語音"
+  },
+  "方向": {
+    "en": "Direction",
+    "zh-TW": "方向"
+  },
+  "收到后转交：SIM 卡 → 分机": {
+    "en": "Incoming: SIM → extension",
+    "zh-TW": "收到後轉交：SIM 卡 → 分機"
+  },
+  "向外拨号 / 发短信：分机 → SIM 卡": {
+    "en": "Outgoing: extension → SIM",
+    "zh-TW": "向外撥號 / 發短信：分機 → SIM 卡"
+  },
+  "哪些账号发起？（可多选）": {
+    "en": "Source accounts (multiple selection)",
+    "zh-TW": "哪些賬號發起？（可多選）"
+  },
+  "号码匹配": {
+    "en": "Number matching",
+    "zh-TW": "號碼匹配"
+  },
+  "仅一个指定号码": {
+    "en": "Exact number",
+    "zh-TW": "僅一個指定號碼"
+  },
+  "号码以指定数字开头": {
+    "en": "Number prefix",
+    "zh-TW": "號碼以指定數字開頭"
+  },
+  "号码 / 前缀": {
+    "en": "Number / prefix",
+    "zh-TW": "號碼 / 前綴"
+  },
+  "目标类型": {
+    "en": "Target type",
+    "zh-TW": "目標類型"
+  },
+  "客户端": {
+    "en": "Extension",
+    "zh-TW": "客戶端"
+  },
+  "客户端群组": {
+    "en": "Extension group",
+    "zh-TW": "客戶端羣組"
+  },
+  "模组": {
+    "en": "Modem",
+    "zh-TW": "模組"
+  },
+  "规则启用": {
+    "en": "Enable rule",
+    "zh-TW": "規則啓用"
+  },
+  "服务器地址（域名或 IP）": {
+    "en": "Server address (domain or IP)",
+    "zh-TW": "服務器地址（域名或 IP）"
+  },
+  "SIP TLS 端口": {
+    "en": "SIP TLS port",
+    "zh-TW": "SIP TLS 端口"
+  },
+  "请先添加一台网关设备，再创建 SIM 线路账号。": {
+    "en": "Add a gateway before creating a SIM line.",
+    "zh-TW": "請先添加一臺網關設備，再創建 SIM 線路賬號。"
+  },
+  "去添加网关": {
+    "en": "Add a gateway",
+    "zh-TW": "去添加網關"
+  },
+  "配置效果预览": {
+    "en": "Route preview",
+    "zh-TW": "配置效果預覽"
+  },
+  "号码条件：": {
+    "en": "Number condition: ",
+    "zh-TW": "號碼條件："
+  },
+  "。保存并应用后参与匹配。": {
+    "en": ". Save and apply to activate.",
+    "zh-TW": "。保存並應用後參與匹配。"
+  },
+  "高级设置": {
+    "en": "Advanced settings",
+    "zh-TW": "高級設置"
+  },
+  "标识（小写字母开头）": {
+    "en": "ID (starts with a lowercase letter)",
+    "zh-TW": "標識（小寫字母開頭）"
+  },
+  "SIP 密码": {
+    "en": "SIP password",
+    "zh-TW": "SIP 密碼"
+  },
+  "优先级": {
+    "en": "Priority",
+    "zh-TW": "優先級"
+  },
+  "认证域": {
+    "en": "Authentication realm",
+    "zh-TW": "認證域"
+  },
+  "RTP 起始端口": {
+    "en": "RTP start port",
+    "zh-TW": "RTP 起始端口"
+  },
+  "RTP 结束端口": {
+    "en": "RTP end port",
+    "zh-TW": "RTP 結束端口"
+  },
+  "注册周期（秒）": {
+    "en": "Registration interval (seconds)",
+    "zh-TW": "註冊週期（秒）"
+  },
+  "短信有效期（秒）": {
+    "en": "SMS retention (seconds)",
+    "zh-TW": "短信有效期（秒）"
+  },
+  "保存": {
+    "en": "Save",
+    "zh-TW": "保存"
+  },
+  "取消": {
+    "en": "Cancel",
+    "zh-TW": "取消"
+  },
+  "设备配置": {
+    "en": "Device configuration",
+    "zh-TW": "設備配置"
+  },
+  "查看配置内容（包含密码）": {
+    "en": "View configuration (includes password)",
+    "zh-TW": "查看配置內容（包含密碼）"
+  },
+  "入网 JSON": {
+    "en": "Provisioning JSON",
+    "zh-TW": "入網 JSON"
+  },
+  "已复制": {
+    "en": "Copied",
+    "zh-TW": "已複製"
+  },
+  "复制": {
+    "en": "Copy",
+    "zh-TW": "複製"
+  },
+  "下载连接配置": {
+    "en": "Download configuration",
+    "zh-TW": "下載連接配置"
+  },
+  "关闭": {
+    "en": "Close",
+    "zh-TW": "關閉"
+  },
+  "连接「": {
+    "en": "Connect “",
+    "zh-TW": "連接「"
+  },
+  "配置未应用，此账户或其修改可能尚未生效。请先应用配置。": {
+    "en": "This account may have unapplied changes. Apply configuration before connecting.",
+    "zh-TW": "配置未應用，此賬戶或其修改可能尚未生效。請先應用配置。"
+  },
+  "服务器 / 域名": {
+    "en": "Server / domain",
+    "zh-TW": "服務器 / 域名"
+  },
+  "请先配置服务器地址": {
+    "en": "Configure a server address first",
+    "zh-TW": "請先配置服務器地址"
+  },
+  "端口": {
+    "en": "Port",
+    "zh-TW": "端口"
+  },
+  "传输方式": {
+    "en": "Transport",
+    "zh-TW": "傳輸方式"
+  },
+  "用户名 / 认证用户名": {
+    "en": "Username / authentication username",
+    "zh-TW": "用戶名 / 認證用戶名"
+  },
+  "账号密码": {
+    "en": "Account password",
+    "zh-TW": "賬號密碼"
+  },
+  "隐藏密码": {
+    "en": "Hide password",
+    "zh-TW": "隱藏密碼"
+  },
+  "显示密码": {
+    "en": "Show password",
+    "zh-TW": "顯示密碼"
+  },
+  "已复制客户端账号密码。": {
+    "en": "Account password copied.",
+    "zh-TW": "已複製客戶端賬號密碼。"
+  },
+  "复制密码": {
+    "en": "Copy password",
+    "zh-TW": "複製密碼"
+  },
+  "条规则 · 按顺序匹配 ·": {
+    "en": "rules · matched in order ·",
+    "zh-TW": "條規則 · 按順序匹配 ·"
+  },
+  "（已暂停）": {
+    "en": "(disabled)",
+    "zh-TW": "（已暫停）"
+  },
+  "测试目标": {
+    "en": "Test target",
+    "zh-TW": "測試目標"
+  },
+  "全天": {
+    "en": "All day",
+    "zh-TW": "全天"
+  },
+  "来源号码": {
+    "en": "Source number",
+    "zh-TW": "來源號碼"
+  },
+  "目标号码": {
+    "en": "Destination number",
+    "zh-TW": "目標號碼"
+  },
+  "可能被前面的规则覆盖": {
+    "en": "An earlier rule may override this rule",
+    "zh-TW": "可能被前面的規則覆蓋"
+  },
+  "上移": {
+    "en": "Move up",
+    "zh-TW": "上移"
+  },
+  "下移": {
+    "en": "Move down",
+    "zh-TW": "下移"
+  },
+  "删除规则": {
+    "en": "Delete rule",
+    "zh-TW": "刪除規則"
+  },
+  "暂无路由规则": {
+    "en": "No routing rules",
+    "zh-TW": "暫無路由規則"
+  },
+  "规则名称": {
+    "en": "Rule name",
+    "zh-TW": "規則名稱"
+  },
+  "呼入": {
+    "en": "Incoming",
+    "zh-TW": "呼入"
+  },
+  "接收": {
+    "en": "Receive",
+    "zh-TW": "接收"
+  },
+  "呼出": {
+    "en": "Outgoing",
+    "zh-TW": "呼出"
+  },
+  "发送": {
+    "en": "Send",
+    "zh-TW": "發送"
+  },
+  "全部号码": {
+    "en": "All numbers",
+    "zh-TW": "全部號碼"
+  },
+  "指定号码": {
+    "en": "Exact number",
+    "zh-TW": "指定號碼"
+  },
+  "号码前缀": {
+    "en": "Number prefix",
+    "zh-TW": "號碼前綴"
+  },
+  "匹配号码": {
+    "en": "Number to match",
+    "zh-TW": "匹配號碼"
+  },
+  "启用规则": {
+    "en": "Enable rule",
+    "zh-TW": "啓用規則"
+  },
+  "保存规则": {
+    "en": "Save rule",
+    "zh-TW": "保存規則"
+  },
+  "路由测试": {
+    "en": "Route test",
+    "zh-TW": "路由測試"
+  },
+  "配置版本": {
+    "en": "Configuration version",
+    "zh-TW": "配置版本"
+  },
+  "已保存": {
+    "en": "Saved",
+    "zh-TW": "已保存"
+  },
+  "已应用": {
+    "en": "Applied",
+    "zh-TW": "已應用"
+  },
+  "来源账户": {
+    "en": "Source account",
+    "zh-TW": "來源賬戶"
+  },
+  "号码": {
+    "en": "Number",
+    "zh-TW": "號碼"
+  },
+  "测试时间": {
+    "en": "Test time",
+    "zh-TW": "測試時間"
+  },
+  "测试时间（浏览器时区）": {
+    "en": "Test time (browser timezone)",
+    "zh-TW": "測試時間（瀏覽器時區）"
+  },
+  "测试路由": {
+    "en": "Test route",
+    "zh-TW": "測試路由"
+  },
+  "匹配：": {
+    "en": "Match: ",
+    "zh-TW": "匹配："
+  },
+  "无匹配路由": {
+    "en": "No matching route",
+    "zh-TW": "無匹配路由"
+  },
+  "平台管理员": {
+    "en": "Platform administrator",
+    "zh-TW": "平臺管理員"
+  },
+  "规则时区": {
+    "en": "Routing timezone",
+    "zh-TW": "規則時區"
+  },
+  "保存时区": {
+    "en": "Save timezone",
+    "zh-TW": "保存時區"
+  },
+  "修改登录密码": {
+    "en": "Change login password",
+    "zh-TW": "修改登錄密碼"
+  },
+  "原密码": {
+    "en": "Current password",
+    "zh-TW": "原密碼"
+  },
+  "新密码（至少12字符）": {
+    "en": "New password (at least 12 characters)",
+    "zh-TW": "新密碼（至少12字符）"
+  },
+  "修改并退出": {
+    "en": "Change password and sign out",
+    "zh-TW": "修改並退出"
+  },
+  "租户管理": {
+    "en": "Tenant management",
+    "zh-TW": "租戶管理"
+  },
+  "允许公开注册": {
+    "en": "Allow public registration",
+    "zh-TW": "允許公開註冊"
+  },
+  "新租户用户名": {
+    "en": "New tenant username",
+    "zh-TW": "新租戶用戶名"
+  },
+  "初始密码": {
+    "en": "Initial password",
+    "zh-TW": "初始密碼"
+  },
+  "创建租户": {
+    "en": "Create tenant",
+    "zh-TW": "創建租戶"
+  },
+  "删除待重试": {
+    "en": "Deletion pending retry",
+    "zh-TW": "刪除待重試"
+  },
+  "输入新密码（至少12字符）": {
+    "en": "Enter a new password (at least 12 characters)",
+    "zh-TW": "輸入新密碼（至少12字符）"
+  },
+  "重置密码": {
+    "en": "Reset password",
+    "zh-TW": "重置密碼"
+  },
+  "删除租户": {
+    "en": "Delete tenant",
+    "zh-TW": "刪除租戶"
+  },
+  "生效时间": {
+    "en": "Schedule",
+    "zh-TW": "生效時間"
+  },
+  "仅在指定时间生效": {
+    "en": "Use a schedule",
+    "zh-TW": "僅在指定時間生效"
+  },
+  "一": {
+    "en": "Mon",
+    "zh-TW": "一"
+  },
+  "二": {
+    "en": "Tue",
+    "zh-TW": "二"
+  },
+  "三": {
+    "en": "Wed",
+    "zh-TW": "三"
+  },
+  "四": {
+    "en": "Thu",
+    "zh-TW": "四"
+  },
+  "五": {
+    "en": "Fri",
+    "zh-TW": "五"
+  },
+  "六": {
+    "en": "Sat",
+    "zh-TW": "六"
+  },
+  "日": {
+    "en": "Sun",
+    "zh-TW": "日"
+  },
+  "周": {
+    "en": " ",
+    "zh-TW": "周"
+  },
+  "开始时间": {
+    "en": "Start time",
+    "zh-TW": "開始時間"
+  },
+  "结束时间": {
+    "en": "End time",
+    "zh-TW": "結束時間"
+  },
+  "移除时段": {
+    "en": "Remove window",
+    "zh-TW": "移除時段"
+  },
+  "添加时段": {
+    "en": "Add window",
+    "zh-TW": "添加時段"
+  },
+  "结束早于开始时跨午夜": {
+    "en": "An earlier end time crosses midnight",
+    "zh-TW": "結束早於開始時跨午夜"
+  },
+  "语言": {
+    "en": "Language",
+    "zh-TW": "語言"
+  },
+  "仅号码 {number}": {
+    "en": "Only {number}",
+    "zh-TW": "僅號碼 {number}"
+  },
+  "号码以 {number} 开头": {
+    "en": "Numbers starting with {number}",
+    "zh-TW": "號碼以 {number} 開頭"
+  },
+  "{source} 向外{action}时，{match}，使用「{target}」的 SIM 卡。": {
+    "en": "{source}: {action} via {target} for {match}.",
+    "zh-TW": "{source} 向外{action}時，{match}，使用「{target}」的 SIM 卡。"
+  },
+  "「{source}」收到{medium}时，按来源号码匹配（{match}），转交给「{target}」。": {
+    "en": "Incoming {medium} on {source}: match the sender ({match}) and forward to {target}.",
+    "zh-TW": "「{source}」收到{medium}時，按來源號碼匹配（{match}），轉交給「{target}」。"
+  },
+  "编辑拓扑 {name}": {
+    "en": "Edit routing diagram: {name}",
+    "zh-TW": "編輯拓撲 {name}"
+  },
+  "删除规则“{name}”？": {
+    "en": "Delete rule “{name}”?",
+    "zh-TW": "刪除規則“{name}”？"
+  },
+  "删除 {name} 的全部配置与短信记录？新通信立即禁止，已接通电话自然结束。": {
+    "en": "Delete all configuration and SMS history for {name}? New traffic is blocked immediately; active calls may finish.",
+    "zh-TW": "刪除 {name} 的全部配置與短信記錄？新通信立即禁止，已接通電話自然結束。"
+  },
+  "删除 {name}？": {
+    "en": "Delete {name}?",
+    "zh-TW": "刪除 {name}？"
+  },
+  "{count} 个 SIM 线路账号": {
+    "en": {
+      "one": "{count} SIM line account",
+      "other": "{count} SIM line accounts"
+    },
+    "zh-TW": "{count} 個 SIM 線路賬號"
+  },
+  "加密连接端口 {port}": {
+    "en": "TLS port {port}",
+    "zh-TW": "加密連接端口 {port}"
+  },
+  "连接「{name}」": {
+    "en": "Connect “{name}”",
+    "zh-TW": "連接「{name}」"
+  },
+  "分机 {number}": {
+    "en": "Extension {number}",
+    "zh-TW": "分機 {number}"
+  },
+  "{count} 条规则": {
+    "en": {
+      "one": "{count} rule",
+      "other": "{count} rules"
+    },
+    "zh-TW": "{count} 條規則"
+  },
+  "{count} 条已启用": {
+    "en": "{count} enabled",
+    "zh-TW": "{count} 條已啓用"
+  },
+  "{count} 条规则 · 按顺序匹配 · {timezone}": {
+    "en": "{count} rules · matched in order · {timezone}",
+    "zh-TW": "{count} 條規則 · 按順序匹配 · {timezone}"
+  },
+  "周一": {
+    "en": "Mon",
+    "zh-TW": "週一"
+  },
+  "周二": {
+    "en": "Tue",
+    "zh-TW": "週二"
+  },
+  "周三": {
+    "en": "Wed",
+    "zh-TW": "週三"
+  },
+  "周四": {
+    "en": "Thu",
+    "zh-TW": "週四"
+  },
+  "周五": {
+    "en": "Fri",
+    "zh-TW": "週五"
+  },
+  "周六": {
+    "en": "Sat",
+    "zh-TW": "週六"
+  },
+  "周日": {
+    "en": "Sun",
+    "zh-TW": "週日"
+  },
+  "注册已关闭": {
+    "en": "Registration is closed",
+    "zh-TW": "註冊已關閉"
+  },
+  "用户名已存在": {
+    "en": "Username already exists",
+    "zh-TW": "用戶名已存在"
+  },
+  "无效用户名": {
+    "en": "Invalid username",
+    "zh-TW": "無效用戶名"
+  },
+  "无效时区": {
+    "en": "Invalid timezone",
+    "zh-TW": "無效時區"
+  },
+  "需要平台管理员权限": {
+    "en": "Administrator access required",
+    "zh-TW": "需要平臺管理員權限"
+  },
+  "租户已停用": {
+    "en": "Tenant is disabled",
+    "zh-TW": "租戶已停用"
+  },
+  "密码需要 12–128 个字符": {
+    "en": "Password must contain 12–128 characters",
+    "zh-TW": "密碼需要 12–128 個字符"
+  },
+  "请五分钟后重试": {
+    "en": "Try again in five minutes",
+    "zh-TW": "請五分鐘後重試"
+  },
+  "配置已被更新，请刷新后重新设置。": {
+    "en": "Configuration changed. Refresh before editing again.",
+    "zh-TW": "配置已被更新，請刷新後重新設置。"
+  },
+  "开始和结束时间不能相同": {
+    "en": "Start and end times must differ",
+    "zh-TW": "開始和結束時間不能相同"
+  },
+  "编辑{type}": {
+    "en": "Edit {type}",
+    "zh-TW": "編輯{type}"
+  },
+  "新增{type}": {
+    "en": "Add {type}",
+    "zh-TW": "新增{type}"
+  },
+  "暂无{type}": {
+    "en": "No {type}",
+    "zh-TW": "暫無{type}"
+  },
+  "无效的星期设置": {
+    "en": "Invalid weekdays",
+    "zh-TW": "無效的星期設置"
+  }
+}

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 import { ScheduleEditor } from "./tenant";
 import { Flow } from "./guide";
@@ -28,7 +29,10 @@ export function Rules({
   const clients = config.accounts.filter((a: any) => a.kind === "client"),
     lines = config.accounts.filter((a: any) => a.kind === "device");
   useEffect(() => {
-    if (draft) document.getElementById('rule-editor')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if (draft)
+      document
+        .getElementById("rule-editor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [!!draft]);
   function edit(r?: any) {
     setBase(experience.revision);
@@ -94,10 +98,13 @@ export function Rules({
     <section className="rules-page">
       <div className="toolbar">
         <span className="subtle">
-          {rows.length} 条规则 · 按顺序匹配 · {user.timezone}
+          {t("{count} 条规则 · 按顺序匹配 · {timezone}", {
+            count: rows.length,
+            timezone: user.timezone,
+          })}
         </span>
         <button className="primary" onClick={() => edit()}>
-          添加规则
+          {t("添加规则")}
         </button>
       </div>
       {rows.map((r: any, i: number) => (
@@ -115,16 +122,16 @@ export function Rules({
           }}
         >
           <h3>
-            {i + 1}. {r.name} {!r.enabled && "（已暂停）"}
+            {i + 1}. {r.name} {!r.enabled && t("（已暂停）")}
           </h3>
           <button
             className="topology-edit"
             onClick={() => edit(r)}
-            aria-label={`编辑拓扑 ${r.name}`}
+            aria-label={t("编辑拓扑 {name}", { name: r.name })}
           >
             <Flow route={r} config={config} />
             {answer?.targets.some((t: any) => t.id === r.target) && (
-              <strong>测试目标</strong>
+              <strong>{t("测试目标")}</strong>
             )}
           </button>
           <p className="subtle">
@@ -132,8 +139,8 @@ export function Rules({
               ? r.schedule.windows
                   .map((w: any) => w.start + "–" + w.end)
                   .join(" / ")
-              : "全天"}{" "}
-            · {r.direction === "inbound" ? "来源号码" : "目标号码"}
+              : t("全天")}{" "}
+            · {r.direction === "inbound" ? t("来源号码") : t("目标号码")}
           </p>
           {rows
             .slice(0, i)
@@ -144,30 +151,30 @@ export function Rules({
                 !p.schedule &&
                 p.enabled &&
                 p.sources.some((id: string) => r.sources.includes(id)),
-            ) && <p role="status">可能被前面的规则覆盖</p>}
+            ) && <p role="status">{t("可能被前面的规则覆盖")}</p>}
           <div className="rule-actions">
-            <button onClick={() => edit(r)}>编辑</button>
+            <button onClick={() => edit(r)}>{t("编辑")}</button>
             <button disabled={!i} onClick={() => move(i, i - 1)}>
-              上移
+              {t("上移")}
             </button>
             <button
               disabled={i === rows.length - 1}
               onClick={() => move(i, i + 1)}
             >
-              下移
+              {t("下移")}
             </button>
             <button
               onClick={() => {
-                if (confirm(`删除规则“${r.name}”？`))
+                if (confirm(t("删除规则“{name}”？", { name: r.name })))
                   save(config.routes.filter((x: any) => x.id !== r.id));
               }}
             >
-              删除规则
+              {t("删除规则")}
             </button>
           </div>
         </article>
       ))}
-      {!rows.length && <p>暂无路由规则</p>}
+      {!rows.length && <p>{t("暂无路由规则")}</p>}
       {draft && (
         <form
           className="panel"
@@ -194,7 +201,7 @@ export function Rules({
                 if (!existing)
                   groups.push({
                     id: r.target,
-                    name: r.name.slice(0, 75) + " 分机组",
+                    name: r.name.slice(0, 75) + " " + t("分机组"),
                     members: draft.receivers,
                   });
               } else {
@@ -210,7 +217,7 @@ export function Rules({
           }}
         >
           <label>
-            规则名称
+            {t("规则名称")}
             <input
               required
               value={draft.name}
@@ -218,9 +225,9 @@ export function Rules({
             />
           </label>
           <label>
-            方向
+            {t("方向")}
             <select
-              aria-label="方向"
+              aria-label={t("方向")}
               value={draft.direction}
               onChange={(e) =>
                 patch({
@@ -232,15 +239,15 @@ export function Rules({
               }
             >
               <option value="inbound">
-                {medium === "voice" ? "呼入" : "接收"}
+                {medium === "voice" ? t("呼入") : t("接收")}
               </option>
               <option value="outbound">
-                {medium === "voice" ? "呼出" : "发送"}
+                {medium === "voice" ? t("呼出") : t("发送")}
               </option>
             </select>
           </label>
           <fieldset>
-            <legend>来源</legend>
+            <legend>{t("来源")}</legend>
             {(draft.direction === "inbound" ? lines : clients).map((a: any) => (
               <label key={a.id}>
                 <input
@@ -259,19 +266,19 @@ export function Rules({
             ))}
           </fieldset>
           <label>
-            {draft.direction === "inbound" ? "来源号码" : "目标号码"}
+            {draft.direction === "inbound" ? t("来源号码") : t("目标号码")}
             <select
               value={draft.match}
               onChange={(e) => patch({ match: e.target.value })}
             >
-              <option value="any">全部号码</option>
-              <option value="exact">指定号码</option>
-              <option value="prefix">号码前缀</option>
+              <option value="any">{t("全部号码")}</option>
+              <option value="exact">{t("指定号码")}</option>
+              <option value="prefix">{t("号码前缀")}</option>
             </select>
           </label>
           {draft.match !== "any" && (
             <input
-              aria-label="匹配号码"
+              aria-label={t("匹配号码")}
               required
               pattern="\+?[0-9]{1,24}"
               value={draft.number}
@@ -284,7 +291,7 @@ export function Rules({
           />
           {draft.direction === "inbound" ? (
             <fieldset>
-              <legend>接收分机</legend>
+              <legend>{t("接收分机")}</legend>
               {clients.map((a: any) => (
                 <label key={a.id}>
                   <input
@@ -304,13 +311,13 @@ export function Rules({
             </fieldset>
           ) : (
             <label>
-              出口线路
+              {t("出口线路")}
               <select
                 required
                 value={draft.target}
                 onChange={(e) => patch({ target: e.target.value })}
               >
-                <option value="">请选择</option>
+                <option value="">{t("请选择")}</option>
                 {lines.map((a: any) => (
                   <option key={a.id} value={a.id}>
                     {a.name}
@@ -325,7 +332,7 @@ export function Rules({
               checked={draft.enabled}
               onChange={(e) => patch({ enabled: e.target.checked })}
             />
-            启用规则
+            {t("启用规则")}
           </label>
           <button
             className="primary"
@@ -334,15 +341,15 @@ export function Rules({
               (draft.direction === "inbound" && !draft.receivers.length)
             }
           >
-            保存规则
+            {t("保存规则")}
           </button>
           <button type="button" onClick={() => setDraft(null)}>
-            取消
+            {t("取消")}
           </button>
         </form>
       )}
       <details className="panel route-test">
-        <summary>路由测试</summary>
+        <summary>{t("路由测试")}</summary>
         <form
           onChange={() => setAnswer(null)}
           onSubmit={async (e) => {
@@ -365,14 +372,14 @@ export function Rules({
           }}
         >
           <label>
-            配置版本
+            {t("配置版本")}
             <select name="version">
-              <option value="draft">已保存</option>
-              <option value="applied">已应用</option>
+              <option value="draft">{t("已保存")}</option>
+              <option value="applied">{t("已应用")}</option>
             </select>
           </label>
           <label>
-            来源账户
+            {t("来源账户")}
             <select name="source" required>
               {config.accounts.map((a: any) => (
                 <option key={a.id} value={a.id}>
@@ -382,28 +389,29 @@ export function Rules({
             </select>
           </label>
           <label>
-            号码
-            <input name="number" placeholder="号码" required />
+            {t("号码")}
+            <input name="number" placeholder={t("号码")} required />
           </label>
           <label>
-            测试时间
+            {t("测试时间")}
             <input
               name="at"
               type="datetime-local"
-              aria-label="测试时间（浏览器时区）"
+              aria-label={t("测试时间（浏览器时区）")}
             />
           </label>
-          <button>测试路由</button>
+          <button>{t("测试路由")}</button>
           {answer && (
             <p role="status">
               {answer.allowed
-                ? "匹配：" + answer.targets.map((t: any) => t.name).join("、")
-                : "无匹配路由"}
+                ? t("匹配：") +
+                  answer.targets.map((t: any) => t.name).join("、")
+                : t("无匹配路由")}
             </p>
           )}
         </form>
       </details>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{t(error)}</p>}
     </section>
   );
 }

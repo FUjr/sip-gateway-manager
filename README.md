@@ -102,3 +102,10 @@ certificates as above, then run
 `RELEASE_TAG=v1.0.0 docker compose -f compose.release.yaml up -d --wait`.
 The release uses a fresh named data volume. Preserve previous service files and
 volumes until the new service and gateway registration have been verified.
+
+## Interface languages
+
+The web interface supports Simplified Chinese, Traditional Chinese and English. It initially
+follows the browser language; the language selector on the login page and toolbar saves your
+choice on this browser. Switching languages preserves open forms and does not change names,
+SIP credentials or the tenant timezone used by routing schedules.

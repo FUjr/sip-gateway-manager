@@ -1,27 +1,36 @@
+import { t } from "./i18n";
 export type Row = Record<string, any>;
 export type Config = Record<string, Row[]>;
 export const labelOf = (rows: Row[], id: string) =>
-  rows.find((r) => r.id === id)?.name || id || "尚未选择";
+  rows.find((r) => r.id === id)?.name || id || t("尚未选择");
 export const mediumName = (value: string) =>
-  value === "voice" ? "通话" : "短信";
+  value === "voice" ? t("通话") : t("短信");
 export const matchName = (r: Row) =>
   r.match === "exact"
-    ? `仅号码 ${r.number || "…"}`
+    ? t("仅号码 {number}", { number: r.number || "…" })
     : r.match === "prefix"
-      ? `号码以 ${r.number || "…"} 开头`
-      : "所有号码";
+      ? t("号码以 {number} 开头", { number: r.number || "…" })
+      : t("所有号码");
 export function routeText(r: Row, config: Config) {
   const source =
     (r.sources || [])
       .map((id: string) => labelOf(config.accounts, id))
-      .join("、") || "尚未选择来源";
+      .join("、") || t("尚未选择来源");
   const target = labelOf(
     r.target_type === "group" ? config.groups : config.accounts,
     r.target,
   );
   return r.direction === "outbound"
-    ? `${source} 向外${r.medium === "voice" ? "拨号" : "发短信"}时，${matchName(r)}，使用「${target}」的 SIM 卡。`
-    : `「${source}」收到${mediumName(r.medium)}时，按来源号码匹配（${matchName(r)}），转交给「${target}」。`;
+    ? t("{source} 向外{action}时，{match}，使用「{target}」的 SIM 卡。", {
+        source,
+        action: r.medium === "voice" ? t("拨号") : t("发短信"),
+        match: matchName(r),
+        target,
+      })
+    : t(
+        "「{source}」收到{medium}时，按来源号码匹配（{match}），转交给「{target}」。",
+        { source, medium: mediumName(r.medium), match: matchName(r), target },
+      );
 }
 
 export function Icon({ name, size = 22 }: { name: string; size?: number }) {
@@ -100,18 +109,18 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
     {
       icon: outbound ? "phone" : "sim",
       title: outbound
-        ? "来源分机"
+        ? t("来源分机")
         : route.medium === "voice"
-          ? "来源线路"
-          : "来源线路",
+          ? t("来源线路")
+          : t("来源线路"),
       text:
         (route.sources || [])
           .map((s: string) => labelOf(config.accounts, s))
-          .join("、") || "选择来源",
+          .join("、") || t("选择来源"),
     },
     {
       icon: "server",
-      title: "路由",
+      title: t("路由"),
       text: `${mediumName(route.medium)} · ${matchName(route)}`,
     },
     {
@@ -120,7 +129,7 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
         : route.target_type === "group"
           ? "group"
           : "phone",
-      title: outbound ? "出口线路" : "接收分机",
+      title: outbound ? t("出口线路") : t("接收分机"),
       text: labelOf(
         route.target_type === "group" ? config.groups : config.accounts,
         route.target,
@@ -129,15 +138,15 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
   ];
   const external = {
     icon: "phone",
-    title: "外部号码",
+    title: t("外部号码"),
     text: outbound
       ? matchName(route)
-      : `${route.medium === "voice" ? "主叫" : "发信号码"} · ${matchName(route)}`,
+      : `${route.medium === "voice" ? t("主叫") : t("发信号码")} · ${matchName(route)}`,
   };
   if (outbound) nodes.push(external);
   else nodes.unshift(external);
   return (
-    <div className="flow" aria-label="规则流向示意">
+    <div className="flow" aria-label={t("规则流向示意")}>
       {nodes.map((n, i) => (
         <div className="flow-piece" key={i}>
           {i > 0 && (

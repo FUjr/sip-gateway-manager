@@ -1,3 +1,4 @@
+import { t, LanguageSwitcher, useLocale } from "./i18n";
 import { Rules } from "./rules";
 import { TenantPanel, ScheduleEditor } from "./tenant";
 import React, { useState, useEffect } from "react";
@@ -50,19 +51,23 @@ async function api(path: string, method = "GET", body?: unknown) {
     if (response.status === 401)
       error =
         path === "login"
-          ? "账号或密码不正确，请重新输入。"
-          : "登录已过期，请刷新页面重新登录。";
+          ? t("账号或密码不正确，请重新输入。")
+          : t("登录已过期，请刷新页面重新登录。");
     if (typeof error !== "string") error = JSON.stringify(error);
     const translations: Record<string, string> = {
-      "extensions must be unique": "分机号已被使用，请换一个。",
-      "device account needs a physical device":
+      "invalid weekdays": t("无效的星期设置"),
+      "extensions must be unique": t("分机号已被使用，请换一个。"),
+      "device account needs a physical device": t(
         "请先添加网关设备，再选择账号所属设备。",
-      "route sources have wrong account type":
+      ),
+      "route sources have wrong account type": t(
         "来源账号与规则方向不一致，请重新选择。",
-      "route target has wrong account type":
+      ),
+      "route target has wrong account type": t(
         "目标账号与规则方向不一致，请重新选择。",
-      "exact/prefix route requires a number": "请填写要匹配的号码或前缀。",
-      "invalid RTP range": "媒体结束端口必须大于起始端口。",
+      ),
+      "exact/prefix route requires a number": t("请填写要匹配的号码或前缀。"),
+      "invalid RTP range": t("媒体结束端口必须大于起始端口。"),
     };
     throw Error(translations[error] || String(error));
   }
@@ -110,6 +115,7 @@ const defaults: Record<string, () => Row> = {
   }),
 };
 function App() {
+  useLocale();
   const [user, setUser] = useState<Row>({}),
     [auth, setAuth] = useState<Row>({}),
     [registering, setRegistering] = useState(false);
@@ -230,6 +236,9 @@ function App() {
   if (!logged)
     return (
       <main className="login">
+        <div className="login-language">
+          <LanguageSwitcher />
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -260,17 +269,17 @@ function App() {
           <h1>SIP Gateway</h1>
           <p>
             {auth.bootstrap
-              ? "创建管理员账户"
+              ? t("创建管理员账户")
               : registering
-                ? "注册账户"
-                : "登录管理平台"}
+                ? t("注册账户")
+                : t("登录管理平台")}
           </p>
           <label>
-            用户名
+            {t("用户名")}
             <input name="username" autoComplete="username" required />
           </label>
           <label>
-            密码
+            {t("密码")}
             <input
               name="password"
               type="password"
@@ -280,19 +289,19 @@ function App() {
           </label>
           {error && (
             <p role="alert" className="error">
-              {error}
+              {t(error)}
             </p>
           )}
           <button disabled={busy}>
             {registering || auth.bootstrap
               ? auth.bootstrap
-                ? "注册首个管理员"
-                : "注册租户"
-              : "登录"}
+                ? t("注册首个管理员")
+                : t("注册租户")
+              : t("登录")}
           </button>
           {auth.registration_open && !auth.bootstrap && (
             <button type="button" onClick={() => setRegistering(!registering)}>
-              {registering ? "返回登录" : "注册租户"}
+              {registering ? t("返回登录") : t("注册租户")}
             </button>
           )}
         </form>
@@ -308,8 +317,8 @@ function App() {
     if (!draft) return null;
     const value = draft[key];
     const hints: Record<string, string> = {
-      priority: "数值越小越优先",
-      hostname: "域名或 IP，不含协议前缀",
+      priority: t("数值越小越优先"),
+      hostname: t("域名或 IP，不含协议前缀"),
     };
     function update(value: any) {
       const next = { ...draft, [key]: value };
@@ -347,7 +356,7 @@ function App() {
             ))
           ) : (
             <p className="help">
-              还没有可选账号，请先在“SIM 卡与客户端”中添加。
+              {t("还没有可选账号，请先在“SIM 卡与客户端”中添加。")}
             </p>
           )}
         </fieldset>
@@ -363,7 +372,7 @@ function App() {
             onChange={(e) => update(e.target.value)}
             required
           >
-            {!multiple && <option value="">请选择</option>}
+            {!multiple && <option value="">{t("请选择")}</option>}
             {options.map(([v, l]) => (
               <option key={v} value={v}>
                 {l}
@@ -406,10 +415,10 @@ function App() {
         <div className="brand">
           <span className="mark">SIP</span>
           <strong>
-            SIP Gateway<small>通话与短信</small>
+            SIP Gateway<small>{t("通话与短信")}</small>
           </strong>
         </div>
-        <nav aria-label="主导航">
+        <nav aria-label={t("主导航")}>
           {[
             "overview",
             "devices",
@@ -427,13 +436,13 @@ function App() {
               onClick={() => go(id)}
             >
               <Icon name={icons[id]} size={19} />
-              {titles[id]}
+              {t(titles[id])}
             </button>
           ))}
         </nav>
         <div className="sidebar-account">
           <strong>{user.username}</strong>
-          <small>{user.admin ? "管理员" : "租户"}</small>
+          <small>{user.admin ? t("管理员") : t("租户")}</small>
         </div>
         <button
           onClick={() =>
@@ -446,18 +455,19 @@ function App() {
             })
           }
         >
-          退出登录
+          {t("退出登录")}
         </button>
       </aside>
       <main>
         <header>
           <div>
             <p className="eyebrow">SIP GATEWAY</p>
-            <h1>{titles[tab]}</h1>
+            <h1>{t(titles[tab])}</h1>
           </div>
           <div className="header-actions">
+            <LanguageSwitcher />
             <button disabled={busy} onClick={() => run(refresh)}>
-              刷新状态
+              {t("刷新状态")}
             </button>
             <button
               className="primary"
@@ -466,15 +476,15 @@ function App() {
                   const r = await api("apply", "POST");
                   setNotice(
                     r.restart_required
-                      ? "端口变更尚未生效，需要管理员重启服务。"
-                      : "配置已应用。",
+                      ? t("端口变更尚未生效，需要管理员重启服务。")
+                      : t("配置已应用。"),
                   );
                   await refresh();
                 })
               }
               disabled={busy}
             >
-              {busy ? "处理中…" : "应用配置"}
+              {busy ? t("处理中…") : t("应用配置")}
             </button>
           </div>
         </header>
@@ -484,26 +494,26 @@ function App() {
         >
           <span className="legend-dot" />
           {status.pending_changes === true
-            ? "配置未应用"
+            ? t("配置未应用")
             : status.pending_changes === false
-              ? "配置已应用"
+              ? t("配置已应用")
               : status.applied
-                ? "配置已应用"
-                : "尚未应用配置"}
+                ? t("配置已应用")
+                : t("尚未应用配置")}
           <span>
             {status.pending_changes
-              ? "新建或修改的账户与路由尚未生效"
+              ? t("新建或修改的账户与路由尚未生效")
               : user.timezone}
           </span>
         </div>
         {error && (
           <p role="alert" className="error">
-            {error}
+            {t(error)}
           </p>
         )}
         {notice && (
           <p role="status" className="notice">
-            {notice}
+            {t(notice)}
           </p>
         )}
         {tab === "overview" ? (
@@ -546,15 +556,15 @@ function App() {
           />
         ) : tab === "deliveries" ? (
           <section className="panel">
-            <button onClick={() => run(refresh)}>刷新</button>
+            <button onClick={() => run(refresh)}>{t("刷新")}</button>
             <table>
               <thead>
                 <tr>
-                  <th>来源</th>
-                  <th>目标</th>
-                  <th>状态</th>
-                  <th>尝试</th>
-                  <th>SIP 响应</th>
+                  <th>{t("来源")}</th>
+                  <th>{t("目标")}</th>
+                  <th>{t("状态")}</th>
+                  <th>{t("尝试")}</th>
+                  <th>{t("SIP 响应")}</th>
                   <th />
                 </tr>
               </thead>
@@ -569,11 +579,11 @@ function App() {
                       >
                         {(
                           {
-                            delivered: "已交付目标账号",
-                            pending: "等待投递 / 重试",
-                            sending: "正在投递",
-                            failed: "投递失败",
-                            expired: "已过期",
+                            delivered: t("已交付目标账号"),
+                            pending: t("等待投递 / 重试"),
+                            sending: t("正在投递"),
+                            failed: t("投递失败"),
+                            expired: t("已过期"),
                           } as Record<string, string>
                         )[d.status] || d.status}
                       </span>
@@ -593,7 +603,7 @@ function App() {
                             })
                           }
                         >
-                          重新投递
+                          {t("重新投递")}
                         </button>
                       )}
                     </td>
@@ -604,8 +614,8 @@ function App() {
             {!deliveries.length && (
               <div className="empty">
                 <Icon name="message" size={32} />
-                <h3>暂时没有短信投递记录</h3>
-                <p>配置短信规则并实际收发后，这里会显示投递结果。</p>
+                <h3>{t("暂时没有短信投递记录")}</h3>
+                <p>{t("配置短信规则并实际收发后，这里会显示投递结果。")}</p>
               </div>
             )}
           </section>
@@ -618,22 +628,22 @@ function App() {
                 }}
               >
                 {tab === "settings"
-                  ? "编辑设置"
+                  ? t("编辑设置")
                   : tab === "devices"
-                    ? "添加网关"
+                    ? t("添加网关")
                     : tab === "accounts"
-                      ? "添加账号"
+                      ? t("添加账号")
                       : tab === "routes"
-                        ? "添加规则"
-                        : "添加群组"}
+                        ? t("添加规则")
+                        : t("添加群组")}
               </button>
             </div>
             <table>
               <thead>
                 <tr>
-                  <th>名称 / 地址</th>
-                  <th>信息</th>
-                  <th>操作</th>
+                  <th>{t("名称 / 地址")}</th>
+                  <th>{t("信息")}</th>
+                  <th>{t("操作")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -648,16 +658,22 @@ function App() {
                         <Registration account={r} status={status} />
                       )}
                       {tab === "accounts"
-                        ? `${r.kind === "device" ? "SIM 线路" : "分机"} · 分机 ${r.extension} · ${r.enabled ? [r.voice_enabled && "通话", r.sms_enabled && "短信"].filter(Boolean).join(" / ") || "无启用业务" : "已停用"}`
+                        ? `${r.kind === "device" ? t("SIM 线路") : t("分机")} · ${t("分机 {number}", { number: r.extension })} · ${r.enabled ? [r.voice_enabled && t("通话"), r.sms_enabled && t("短信")].filter(Boolean).join(" / ") || t("无启用业务") : t("已停用")}`
                         : tab === "routes"
-                          ? `${r.enabled ? "启用" : "停用"} · ${r.medium === "voice" ? "通话" : "短信"} · ${routeText(r, config)} 优先级 ${r.priority}`
+                          ? `${r.enabled ? t("启用") : t("停用")} · ${r.medium === "voice" ? t("通话") : t("短信")} · ${routeText(r, config)} ${t("优先级")} ${r.priority}`
                           : tab === "groups"
                             ? r.members
                                 .map((id: string) => labelOf(clients, id))
                                 .join("、")
                             : tab === "devices"
-                              ? `${devices.filter((a) => a.device_id === r.id).length} 个 SIM 线路账号`
-                              : `加密连接端口 ${r.sip_tls_port}`}
+                              ? t("{count} 个 SIM 线路账号", {
+                                  count: devices.filter(
+                                    (a) => a.device_id === r.id,
+                                  ).length,
+                                })
+                              : t("加密连接端口 {port}", {
+                                  port: String(r.sip_tls_port),
+                                })}
                     </td>
                     <td>
                       <button
@@ -665,19 +681,23 @@ function App() {
                           edit(tab, r);
                         }}
                       >
-                        编辑
+                        {t("编辑")}
                       </button>
                       {tab !== "settings" && (
                         <button
                           onClick={() => {
-                            if (window.confirm("删除 " + r.name + "？"))
+                            if (
+                              window.confirm(
+                                t("删除 {name}？", { name: r.name }),
+                              )
+                            )
                               run(async () => {
                                 await api(tab + "/" + r.id, "DELETE");
                                 await refresh();
                               });
                           }}
                         >
-                          删除
+                          {t("删除")}
                         </button>
                       )}
                       {tab === "accounts" && r.kind === "device" && (
@@ -696,7 +716,7 @@ function App() {
                             })
                           }
                         >
-                          连接配置
+                          {t("连接配置")}
                         </button>
                       )}
                       {tab === "accounts" && r.kind === "client" && (
@@ -708,7 +728,7 @@ function App() {
                             setProvision("");
                           }}
                         >
-                          连接配置
+                          {t("连接配置")}
                         </button>
                       )}
                       {tab === "devices" && (
@@ -720,7 +740,7 @@ function App() {
                             })
                           }
                         >
-                          添加 SIM 线路
+                          {t("添加 SIM 线路")}
                         </button>
                       )}
                     </td>
@@ -731,8 +751,8 @@ function App() {
             {!config[tab].length && (
               <div className="empty">
                 <Icon name={icons[tab]} size={36} />
-                <h3>暂无{titles[tab]}</h3>
-                <p>暂无记录</p>
+                <h3>{t("暂无{type}", { type: t(titles[tab]) })}</h3>
+                <p>{t("暂无记录")}</p>
               </div>
             )}
           </section>
@@ -740,54 +760,56 @@ function App() {
         {draft && (
           <section className="panel editor" id="configuration-editor">
             <h2>
-              {editing ? "编辑" : "新增"}
-              {friendlyEntity && tab === "accounts"
-                ? draft.kind === "device"
-                  ? "SIM 线路"
-                  : "分机"
-                : titles[tab]}
+              {t(editing ? "编辑{type}" : "新增{type}", {
+                type:
+                  friendlyEntity && tab === "accounts"
+                    ? draft.kind === "device"
+                      ? t("SIM 线路")
+                      : t("分机")
+                    : t(titles[tab]),
+              })}
             </h2>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 run(async () => {
                   if (tab === "routes" && !draft.sources.length)
-                    throw Error("请至少勾选一个来源账号。");
+                    throw Error(t("请至少勾选一个来源账号。"));
                   if (tab === "groups" && !draft.members.length)
-                    throw Error("请至少勾选一个接听客户端。");
+                    throw Error(t("请至少勾选一个接听客户端。"));
                   await api(tab + "/" + (draft.id || "main"), "PUT", draft);
                   setDraft(null);
                   await refresh();
-                  setNotice("已保存，尚未应用。");
+                  setNotice(t("已保存，尚未应用。"));
                 });
               }}
             >
               <div className="fields">
-                {tab !== "settings" && <>{field("name", "显示名称")}</>}
+                {tab !== "settings" && <>{field("name", t("显示名称"))}</>}
                 {tab === "accounts" && (
                   <>
                     {!friendlyEntity &&
-                      field("kind", "账户类型", "text", [
-                        ["device", "SIM 线路"],
-                        ["client", "分机"],
+                      field("kind", t("账户类型"), "text", [
+                        ["device", t("SIM 线路")],
+                        ["client", t("分机")],
                       ])}
                     {draft.kind === "device" &&
                       field(
                         "device_id",
-                        "所属设备",
+                        t("所属设备"),
                         "text",
                         opts(config.devices),
                       )}
-                    {field("extension", "分机号")}
-                    {field("voice_enabled", "启用语音", "checkbox")}
-                    {field("sms_enabled", "启用短信", "checkbox")}
-                    {field("enabled", "账号启用", "checkbox")}
+                    {field("extension", t("分机号"))}
+                    {field("voice_enabled", t("启用语音"), "checkbox")}
+                    {field("sms_enabled", t("启用短信"), "checkbox")}
+                    {field("enabled", t("账号启用"), "checkbox")}
                   </>
                 )}
                 {tab === "groups" &&
                   field(
                     "members",
-                    "客户端（可多选）",
+                    t("客户端（可多选）"),
                     "text",
                     opts(clients),
                     true,
@@ -798,41 +820,41 @@ function App() {
                       value={draft.schedule}
                       onChange={(schedule) => setDraft({ ...draft, schedule })}
                     />
-                    {field("medium", "业务", "text", [
-                      ["voice", "语音"],
-                      ["sms", "短信"],
+                    {field("medium", t("业务"), "text", [
+                      ["voice", t("语音")],
+                      ["sms", t("短信")],
                     ])}
-                    {field("direction", "方向", "text", [
-                      ["inbound", "收到后转交：SIM 卡 → 分机"],
-                      ["outbound", "向外拨号 / 发短信：分机 → SIM 卡"],
+                    {field("direction", t("方向"), "text", [
+                      ["inbound", t("收到后转交：SIM 卡 → 分机")],
+                      ["outbound", t("向外拨号 / 发短信：分机 → SIM 卡")],
                     ])}
                     {field(
                       "sources",
-                      "哪些账号发起？（可多选）",
+                      t("哪些账号发起？（可多选）"),
                       "text",
                       opts(draft.direction === "inbound" ? devices : clients),
                       true,
                     )}
-                    {field("match", "号码匹配", "text", [
-                      ["any", "所有号码"],
-                      ["exact", "仅一个指定号码"],
-                      ["prefix", "号码以指定数字开头"],
+                    {field("match", t("号码匹配"), "text", [
+                      ["any", t("所有号码")],
+                      ["exact", t("仅一个指定号码")],
+                      ["prefix", t("号码以指定数字开头")],
                     ])}
-                    {draft.match !== "any" && field("number", "号码 / 前缀")}
+                    {draft.match !== "any" && field("number", t("号码 / 前缀"))}
                     {field(
                       "target_type",
-                      "目标类型",
+                      t("目标类型"),
                       "text",
                       draft.direction === "inbound"
                         ? [
-                            ["account", "客户端"],
-                            ["group", "客户端群组"],
+                            ["account", t("客户端")],
+                            ["group", t("客户端群组")],
                           ]
-                        : [["account", "模组"]],
+                        : [["account", t("模组")]],
                     )}
                     {field(
                       "target",
-                      "目标",
+                      t("目标"),
                       "text",
                       opts(
                         draft.target_type === "group"
@@ -842,13 +864,13 @@ function App() {
                             : devices,
                       ),
                     )}
-                    {field("enabled", "规则启用", "checkbox")}
+                    {field("enabled", t("规则启用"), "checkbox")}
                   </>
                 )}
                 {tab === "settings" && (
                   <>
-                    {field("hostname", "服务器地址（域名或 IP）")}
-                    {field("sip_tls_port", "SIP TLS 端口", "number")}
+                    {field("hostname", t("服务器地址（域名或 IP）"))}
+                    {field("sip_tls_port", t("SIP TLS 端口"), "number")}
                   </>
                 )}
               </div>
@@ -856,46 +878,52 @@ function App() {
                 draft.kind === "device" &&
                 !config.devices.length && (
                   <p className="error">
-                    请先添加一台网关设备，再创建 SIM 线路账号。
+                    {t("请先添加一台网关设备，再创建 SIM 线路账号。")}
                     <button type="button" onClick={() => create("devices")}>
-                      去添加网关
+                      {t("去添加网关")}
                     </button>
                   </p>
                 )}
               {tab === "routes" && (
                 <div className="route-preview">
-                  <h3>配置效果预览</h3>
+                  <h3>{t("配置效果预览")}</h3>
                   <Flow route={draft} config={config} />
                   <p>{routeText(draft, config)}</p>
                   <small>
-                    号码条件：{matchName(draft)}。保存并应用后参与匹配。
+                    {t("号码条件：")}
+                    {matchName(draft)}
+                    {t("。保存并应用后参与匹配。")}
                   </small>
                 </div>
               )}
               <details className="advanced">
-                <summary>高级设置</summary>
+                <summary>{t("高级设置")}</summary>
                 <div className="fields">
-                  {tab !== "settings" && field("id", "标识（小写字母开头）")}
+                  {tab !== "settings" && field("id", t("标识（小写字母开头）"))}
                   {tab === "accounts" &&
-                    field("password", "SIP 密码", "password")}
-                  {tab === "routes" && field("priority", "优先级", "number")}
+                    field("password", t("SIP 密码"), "password")}
+                  {tab === "routes" && field("priority", t("优先级"), "number")}
                   {tab === "settings" && (
                     <>
-                      {field("realm", "认证域")}
-                      {field("rtp_start", "RTP 起始端口", "number")}
-                      {field("rtp_end", "RTP 结束端口", "number")}
-                      {field("register_interval", "注册周期（秒）", "number")}
-                      {field("sms_ttl", "短信有效期（秒）", "number")}
+                      {field("realm", t("认证域"))}
+                      {field("rtp_start", t("RTP 起始端口"), "number")}
+                      {field("rtp_end", t("RTP 结束端口"), "number")}
+                      {field(
+                        "register_interval",
+                        t("注册周期（秒）"),
+                        "number",
+                      )}
+                      {field("sms_ttl", t("短信有效期（秒）"), "number")}
                     </>
                   )}
                 </div>
               </details>
               <div className="actions">
                 <button className="primary" disabled={busy}>
-                  保存
+                  {t("保存")}
                 </button>
                 <button type="button" onClick={() => setDraft(null)}>
-                  取消
+                  {t("取消")}
                 </button>
               </div>
             </form>
@@ -903,21 +931,25 @@ function App() {
         )}
         {provision && (
           <section className="panel" id="configuration-editor">
-            <h2>设备配置</h2>
+            <h2>{t("设备配置")}</h2>
             <details className="advanced">
-              <summary>查看配置内容（包含密码）</summary>
-              <textarea aria-label="入网 JSON" readOnly value={provision} />
+              <summary>{t("查看配置内容（包含密码）")}</summary>
+              <textarea
+                aria-label={t("入网 JSON")}
+                readOnly
+                value={provision}
+              />
             </details>
             <div className="actions">
               <button
                 onClick={() =>
                   run(async () => {
                     await navigator.clipboard.writeText(provision);
-                    setNotice("已复制");
+                    setNotice(t("已复制"));
                   })
                 }
               >
-                复制
+                {t("复制")}
               </button>
               <button
                 onClick={() => {
@@ -932,52 +964,52 @@ function App() {
                   URL.revokeObjectURL(url);
                 }}
               >
-                下载连接配置
+                {t("下载连接配置")}
               </button>
-              <button onClick={() => setProvision("")}>关闭</button>
+              <button onClick={() => setProvision("")}>{t("关闭")}</button>
             </div>
           </section>
         )}
         {connection && (
           <section className="panel" id="configuration-editor">
-            <h2>连接「{connection.name}」</h2>
+            <h2>{t("连接「{name}」", { name: connection.name })}</h2>
             {status.pending_changes && (
               <p className="notice">
-                配置未应用，此账户或其修改可能尚未生效。请先应用配置。
+                {t("配置未应用，此账户或其修改可能尚未生效。请先应用配置。")}
               </p>
             )}
             <dl className="connection-details">
-              <dt>服务器 / 域名</dt>
-              <dd>{config.settings[0]?.hostname || "请先配置服务器地址"}</dd>
-              <dt>端口</dt>
+              <dt>{t("服务器 / 域名")}</dt>
+              <dd>{config.settings[0]?.hostname || t("请先配置服务器地址")}</dd>
+              <dt>{t("端口")}</dt>
               <dd>{config.settings[0]?.sip_tls_port || 5061}</dd>
-              <dt>传输方式</dt>
+              <dt>{t("传输方式")}</dt>
               <dd>TLS</dd>
-              <dt>用户名 / 认证用户名</dt>
+              <dt>{t("用户名 / 认证用户名")}</dt>
               <dd>{connection.id}</dd>
-              <dt>账号密码</dt>
+              <dt>{t("账号密码")}</dt>
               <dd>
                 <code>
                   {showPassword ? connection.password : "••••••••••••••••"}
                 </code>
                 <button onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? "隐藏密码" : "显示密码"}
+                  {showPassword ? t("隐藏密码") : t("显示密码")}
                 </button>
                 <button
                   onClick={() =>
                     run(async () => {
                       await navigator.clipboard.writeText(connection.password);
-                      setNotice("已复制客户端账号密码。");
+                      setNotice(t("已复制客户端账号密码。"));
                     })
                   }
                 >
-                  复制密码
+                  {t("复制密码")}
                 </button>
               </dd>
-              <dt>分机号</dt>
+              <dt>{t("分机号")}</dt>
               <dd>{connection.extension}</dd>
             </dl>
-            <button onClick={() => setConnection(null)}>关闭</button>
+            <button onClick={() => setConnection(null)}>{t("关闭")}</button>
           </section>
         )}
       </main>

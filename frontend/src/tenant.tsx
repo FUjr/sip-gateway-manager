@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useEffect, useState } from "react";
 type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
 export function TenantPanel({ api, user }: { api: Api; user: any }) {
@@ -25,12 +26,12 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
   }
   return (
     <section className="panel tenant-panel">
-      <h2>账户与租户</h2>
+      <h2>{t("账户与租户")}</h2>
       <p>
-        {user.username} · {user.admin ? "平台管理员" : "租户"}
+        {user.username} · {user.admin ? t("平台管理员") : t("租户")}
       </p>
       <label>
-        规则时区
+        {t("规则时区")}
         <input value={zone} onChange={(e) => setZone(e.target.value)} />
       </label>
       <button
@@ -41,7 +42,7 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
           })
         }
       >
-        保存时区
+        {t("保存时区")}
       </button>
       <form
         onSubmit={(e) => {
@@ -53,25 +54,25 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
           });
         }}
       >
-        <h3>修改登录密码</h3>
+        <h3>{t("修改登录密码")}</h3>
         <input
           name="current_password"
           type="password"
-          placeholder="原密码"
+          placeholder={t("原密码")}
           required
         />
         <input
           name="password"
           type="password"
           minLength={12}
-          placeholder="新密码（至少12字符）"
+          placeholder={t("新密码（至少12字符）")}
           required
         />
-        <button>修改并退出</button>
+        <button>{t("修改并退出")}</button>
       </form>
       {!!user.admin && (
         <>
-          <h3>租户管理</h3>
+          <h3>{t("租户管理")}</h3>
           <label>
             <input
               type="checkbox"
@@ -84,7 +85,7 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
                 })
               }
             />
-            允许公开注册
+            {t("允许公开注册")}
           </label>
           <form
             onSubmit={(e) => {
@@ -95,26 +96,26 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
               });
             }}
           >
-            <input name="username" placeholder="新租户用户名" required />
+            <input name="username" placeholder={t("新租户用户名")} required />
             <input
               name="password"
               type="password"
               minLength={12}
-              placeholder="初始密码"
+              placeholder={t("初始密码")}
               required
             />
-            <button>创建租户</button>
+            <button>{t("创建租户")}</button>
           </form>
           <div className="tenant-list">
             {rows.map((r) => (
               <article key={r.id}>
                 <strong>{r.username}</strong> · {r.timezone}{" "}
-                {!r.active && "删除待重试"}{" "}
+                {!r.active && t("删除待重试")}{" "}
                 {r.id !== user.id && (
                   <>
                     <button
                       onClick={() => {
-                        const value = prompt("输入新密码（至少12字符）");
+                        const value = prompt(t("输入新密码（至少12字符）"));
                         if (value)
                           run(async () => {
                             await api(
@@ -125,13 +126,16 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
                           });
                       }}
                     >
-                      重置密码
+                      {t("重置密码")}
                     </button>
                     <button
                       onClick={() => {
                         if (
                           confirm(
-                            `删除 ${r.username} 的全部配置与短信记录？新通信立即禁止，已接通电话自然结束。`,
+                            t(
+                              "删除 {name} 的全部配置与短信记录？新通信立即禁止，已接通电话自然结束。",
+                              { name: r.username },
+                            ),
                           )
                         )
                           run(async () => {
@@ -139,7 +143,7 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
                           });
                       }}
                     >
-                      删除租户
+                      {t("删除租户")}
                     </button>
                   </>
                 )}
@@ -148,7 +152,7 @@ export function TenantPanel({ api, user }: { api: Api; user: any }) {
           </div>{" "}
         </>
       )}
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{t(error)}</p>}
     </section>
   );
 }
@@ -165,19 +169,27 @@ export function ScheduleEditor({
   };
   return (
     <fieldset>
-      <legend>生效时间</legend>
+      <legend>{t("生效时间")}</legend>
       <label>
         <input
           type="checkbox"
           checked={!!value}
           onChange={(e) => onChange(e.target.checked ? schedule : null)}
         />
-        仅在指定时间生效
+        {t("仅在指定时间生效")}
       </label>
       {value && (
         <>
           <div className="weekdays">
-            {["一", "二", "三", "四", "五", "六", "日"].map((d, i) => (
+            {[
+              t("周一"),
+              t("周二"),
+              t("周三"),
+              t("周四"),
+              t("周五"),
+              t("周六"),
+              t("周日"),
+            ].map((d, i) => (
               <label key={i}>
                 <input
                   type="checkbox"
@@ -191,7 +203,7 @@ export function ScheduleEditor({
                     })
                   }
                 />
-                周{d}
+                {d}
               </label>
             ))}
           </div>
@@ -200,7 +212,7 @@ export function ScheduleEditor({
               {["start", "end"].map((k) => (
                 <input
                   key={k}
-                  aria-label={k === "start" ? "开始时间" : "结束时间"}
+                  aria-label={k === "start" ? t("开始时间") : t("结束时间")}
                   type="time"
                   value={w[k]}
                   onChange={(e) =>
@@ -224,7 +236,7 @@ export function ScheduleEditor({
                   })
                 }
               >
-                移除时段
+                {t("移除时段")}
               </button>
             </div>
           ))}
@@ -240,9 +252,9 @@ export function ScheduleEditor({
               })
             }
           >
-            添加时段
+            {t("添加时段")}
           </button>
-          <small className="help">结束早于开始时跨午夜</small>
+          <small className="help">{t("结束早于开始时跨午夜")}</small>
         </>
       )}
     </fieldset>
