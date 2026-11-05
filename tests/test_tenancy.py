@@ -100,3 +100,26 @@ def test_caller_rules_and_schedule_use_same_runtime_resolver():
     assert resolve(conf,'line','arbitrary','voice',caller='10099',now=when)==['phone']
     assert resolve(conf,'line','10099','voice',caller='12345',now=when)==[]
     assert resolve(conf,'line','arbitrary','voice',caller='10099',now=datetime.fromisoformat('2026-11-02T17:00:00+00:00'))==[]
+
+def test_live_registration_status_is_scoped_and_failure_is_unknown(server, monkeypatch):
+    m = server
+    a, owner = register(m)
+    a.put('/api/v1/platform/registration', json={'enabled': True})
+    b, tenant = register(m, 'second')
+    ids = []
+    for c, user in ((a, owner), (b, tenant)):
+        identity = user['id'] + '_phone'
+        ids.append(identity)
+        assert c.put('/api/v1/accounts/' + identity, json={
+            'id': identity, 'name': 'Phone', 'kind': 'client',
+            'extension': '200', 'password': 'abcdefghijklmnop',
+        }).status_code == 200
+    import backend.ami
+    async def live(): return {ids[0]: True, ids[1]: True, 'other_account': True}
+    monkeypatch.setattr(backend.ami, 'contacts', live)
+    monkeypatch.setenv('PBX_MANAGED', '1')
+    assert a.get('/api/v1/status').json()['registrations'] == {ids[0]: True}
+    assert b.get('/api/v1/status').json()['registrations'] == {ids[1]: True}
+    async def unavailable(): raise OSError('AMI unavailable')
+    monkeypatch.setattr(backend.ami, 'contacts', unavailable)
+    assert a.get('/api/v1/status').json()['registrations'] is None

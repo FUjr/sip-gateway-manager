@@ -214,12 +214,20 @@ async def publish(include_draft=True):
         return {'revision': revision, 'restart_required': False, 'applied': True}
 
 @app.get('/api/v1/status')
-def status():
+async def status():
     with store.lock:
         counts = dict(store.db.execute('SELECT j.status,count(*) FROM jobs j JOIN messages m ON m.id=j.message_id WHERE m.source IN (SELECT id FROM objects WHERE kind=?) GROUP BY j.status',(store.key('accounts'),)).fetchall())
         conf = store.config()
-    active = DATA / 'applied-config.json'
+    registrations = None
+    if os.getenv('PBX_MANAGED') == '1':
+        from .ami import contacts
+        try:
+            live = await asyncio.wait_for(contacts(), 2)
+            registrations = {a['id']: live.get(a['id'], False) for a in conf['accounts']}
+        except (OSError, TimeoutError, RuntimeError, asyncio.IncompleteReadError):
+            pass
     return {'deliveries': counts,
+            'registrations': registrations,
             'pending_changes': store.pending(),
             'applied': json.loads((DATA/'applied.json').read_text()) if (DATA/'applied.json').exists() else None}
 

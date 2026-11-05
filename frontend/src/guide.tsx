@@ -21,7 +21,7 @@ export function routeText(r: Row, config: Config) {
   );
   return r.direction === "outbound"
     ? `${source} 向外${r.medium === "voice" ? "拨号" : "发短信"}时，${matchName(r)}，使用「${target}」的 SIM 卡。`
-    : `「${source}」收到${mediumName(r.medium)}时，按被叫号码匹配（${matchName(r)}），转交给「${target}」。`;
+    : `「${source}」收到${mediumName(r.medium)}时，按来源号码匹配（${matchName(r)}），转交给「${target}」。`;
 }
 
 export function Icon({ name, size = 22 }: { name: string; size?: number }) {
@@ -100,10 +100,10 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
     {
       icon: outbound ? "phone" : "sim",
       title: outbound
-        ? "发起的客户端"
+        ? "来源分机"
         : route.medium === "voice"
-          ? "接到来电的 SIM 卡"
-          : "收到短信的 SIM 卡",
+          ? "来源线路"
+          : "来源线路",
       text:
         (route.sources || [])
           .map((s: string) => labelOf(config.accounts, s))
@@ -111,7 +111,7 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
     },
     {
       icon: "server",
-      title: "Asterisk 转发服务",
+      title: "路由",
       text: `${mediumName(route.medium)} · ${matchName(route)}`,
     },
     {
@@ -120,7 +120,7 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
         : route.target_type === "group"
           ? "group"
           : "phone",
-      title: outbound ? "使用这张 SIM 卡" : "交给这里处理",
+      title: outbound ? "出口线路" : "接收分机",
       text: labelOf(
         route.target_type === "group" ? config.groups : config.accounts,
         route.target,
@@ -129,8 +129,10 @@ export function Flow({ route, config }: { route: Row; config: Config }) {
   ];
   const external = {
     icon: "phone",
-    title: "运营商网络 / 外部号码",
-    text: outbound ? matchName(route) : `${route.medium === "voice" ? "主叫" : "发信号码"} · ${matchName(route)}`,
+    title: "外部号码",
+    text: outbound
+      ? matchName(route)
+      : `${route.medium === "voice" ? "主叫" : "发信号码"} · ${matchName(route)}`,
   };
   if (outbound) nodes.push(external);
   else nodes.unshift(external);

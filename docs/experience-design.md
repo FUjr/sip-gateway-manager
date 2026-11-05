@@ -1,67 +1,47 @@
-# Design: a shared SIM desk, powered by Asterisk
+# SIP Gateway WebUI
 
-The product is a place to share cellular lines with personal SIP terminals.
-The user's object is a **line** (one modem with a SIM), not a dialplan rule.
-A physical gateway owns lines; a terminal is one phone/desktop SIP identity,
-not a human login. SIM phone numbers, installed modem slots and online state
-are not known to this platform, so the UI must not invent them.
+## Navigation
 
-## Underlying model
+- 概览: counts, SIM lines, extensions, live registration, and routing shortcuts.
+- 网关: physical gateways and their SIM accounts.
+- SIP 账户: SIM lines and client extensions, connection credentials, enablement.
+- 分机组: reusable groups of extensions.
+- 电话路由 / 短信路由: ordered rule cards and editable topology.
+- 短信记录: per-recipient status and retry.
+- 服务器设置: admin-only transport parameters.
+- 账户与租户: timezone/password; admin-only tenant and registration management.
 
-Asterisk Endpoint is protocol behaviour, Auth is a credential, AoR/Contact is
-where a registered endpoint can be reached. These compile from an account and
-are connection details, not three things for beginners to create.
-Each authenticated endpoint has an isolated context. Client internal extensions
-are resolved before external routing. Incoming rules match caller/sender numbers; outgoing rules match destination numbers.
-The dedicated graphical editor supports weekdays and time windows in each tenant timezone.
-Outbound traffic uses an explicitly selected modem endpoint. Voice bridges through
-Asterisk (direct_media=no); SIP MESSAGE is independently routed and durably queued
-by the backend. A MESSAGE success is not a cellular delivery receipt.
+Use established SIP and routing terms. Keep explanations for consequential states
+and errors. Avoid additional service concepts or instructional dashboard text.
 
-References:
-- https://docs.asterisk.org/Configuration/Channel-Drivers/SIP/Configuring-res_pjsip/PJSIP-Configuration-Sections-and-Relationships/
-- https://docs.asterisk.org/Configuration/Dialplan/Contexts-Extensions-and-Priorities/
-- https://docs.asterisk.org/Latest_API/API_Documentation/Dialplan_Applications/MessageSend/
+## Rules
 
-## Product abstraction
+Incoming rules match original caller/sender numbers; outgoing rules match target
+numbers. Select source accounts, number conditions, destination, and optional
+weekday/time windows. Show the source, router, target and external number in the
+editable topology. Keep route tests in a collapsible panel. Test inputs invalidate
+old answers. Saved and applied versions can be tested separately.
 
-Default navigation is **My lines / My terminals / SMS history**. Connections and
-technical routing live under advanced configuration. Each line has four purposes:
-who answers calls; who receives SMS; who may call out; who may send SMS. Each
-purpose displays its configured people and external number scope separately.
-The overview is a semantic circuit: external world ↔ selected cellular line ↔
-sharing service ↔ personal terminals. A physical gateway is the line's location;
-the WebUI is a control surface, not an extra node in the audio path. Number
-restrictions belong to outbound use, not to the cellular connection itself.
+Preserve restrictions and unrelated routes. Versioned atomic rule-set updates
+reject stale edits. Reuse identical groups without mutating shared memberships.
+No rule implies rejection of external communication. Internal client extensions
+resolve within the current tenant before external routing.
 
-The beginner editor asks for a purpose, terminal(s), and (outbound only) allowed
-numbers. It atomically compiles to validated account references, groups and routes.
-It never creates/changes credentials or widens an exact-number scope implicitly.
-Several receivers ring simultaneously for voice; SMS is delivered independently.
-No catch-all route is automatically created. Unconfigured purposes remain closed.
+## State and credentials
 
-## Preserve truth and existing work
+Saving and applying are separate operations. Pending state remains visible in the
+shared header and beside connection credentials. Default login username is empty;
+password managers may fill previously saved credentials. SIP passwords are masked
+until requested, and account IDs remain separate from internal extension numbers.
 
-- Existing simple configuration projects into purposes without migration or writes.
-- Conditional inbound rules, shared inbound sources or several rules for one
-  purpose remain custom; show that fact and link to advanced configuration.
-- Editing a purpose preserves its ID, priority, name and other purposes. Groups
-  shared elsewhere are never edited; a new group is created/reused when needed.
-- Reject overlapping outbound purposes in the beginner editor rather than hide
-  first-match precedence. Advanced routing continues to support deliberate splits.
-- Save uses a configuration revision and one transaction. Stale edits fail without
-  writes. Saved state and applied state remain distinct. No automatic apply.
-- The interactive rehearsal uses the actual resolver for the saved configuration,
-  including internal extension precedence and disabled services; it performs no
-  calls/SMS. Changing its inputs invalidates the displayed answer.
-- No green line is evidence of registration. The diagram describes service intent;
-  cellular health, installed credentials and actual registration remain separate.
+Live registration comes from Asterisk AMI contacts, filtered to accounts owned by
+the current tenant. Enabled and reachable are distinct. If querying Asterisk
+fails, show unknown status rather than inventing offline/online state. No contact
+address, credential, or other tenant account is returned in the status response.
 
-## Acceptance
+## Layout
 
-Existing exact-10099 purposes retain their restrictions. Two lines do not imply
-permission to use both. A beginner can set incoming voice with several terminals,
-see simultaneous ringing, and separately leave SMS unconfigured. Stale saves,
-shared rules, disabled accounts, internal-number collisions and overlapping
-outbound purposes cannot silently change unrelated behaviour. Desktop and mobile
-render the same semantic relationships, with visible and labelled connectors.
+Light navigation, compact tables, and bordered resource/route cards share spacing,
+color and typography tokens. Desktop uses a fixed sidebar and two resource columns;
+mobile uses scrollable navigation and one column. Topology nodes stack vertically
+on mobile. All controls keep labels, focus styles and keyboard access.

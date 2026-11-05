@@ -18,35 +18,25 @@ Use a **new data volume** for this version: legacy single-admin data is delibera
 
 Hostname changes require a PBX restart after applying. Transport/RTP port changes require a restart with matching port mappings. Back up `gateway-data` securely. Stop with `docker compose down` without `-v` to retain production data.
 
-## Beginner WebUI
+## WebUI
 
-The default **我的线路** page models one modem/SIM as a shared cellular line.
-Select a line and arrange four independent purposes: **who answers calls, who
-receives SMS, who may call out, and who may send SMS**. The semantic diagram
-shows external network, the selected line (inside its physical gateway), the
-shared switching service, and the personal terminals. It is a service model,
-not a display of individual dialplan rules or evidence of online registration.
+The overview lists SIM lines and SIP extensions with live Asterisk registration
+status. Navigation exposes gateways, SIP accounts, extension groups, phone routing,
+SMS routing, delivery history, and account/tenant settings directly.
 
-**接听终端** creates connection identities for personal phones/desktops, not
-administrator logins. Connection identities and unused internal numbers are
-created automatically; passwords remain hidden until requested. Gateway enrollment
-and client connection instructions are available beside each line/terminal.
-Technical accounts, groups, rules and transports remain under **高级配置与连接**.
+Phone and SMS routes have separate graphical editors. Rules support source
+accounts, destination or caller/sender number conditions, weekdays and time windows
+in the tenant timezone. Click a topology to edit, or reorder cards by dragging or
+using the move controls. Multi-extension voice targets ring together; SMS targets
+receive independent deliveries. Route tests use the same backend resolver and can
+select saved or applied configuration without placing calls or sending messages.
 
-The purpose editor compiles one user intent atomically into validated groups and
-routes. It preserves other purposes and shared group membership, rejects stale
-configuration revisions, and refuses ambiguous overlapping outbound uses. Custom
-conditional/shared dialplans stay under advanced configuration instead of being
-silently flattened. Incoming conditions match the original caller/sender. Scheduled rules are edited
-in the dedicated graphical rule editor. Existing number restrictions are preserved when editing.
+Saved changes require **应用配置**. The persistent pending indicator and connection
+credential panel warn when saved changes are not active. SIP passwords are hidden
+by default. The login username starts empty; browser password-manager autofill is
+supported. Tenant data and registration status are scoped to the current login.
 
-**号码预演** uses the backend's real resolver for the saved configuration to show
-which line/terminal would be chosen, including internal-short-number precedence
-and blocked requests. It never places a call, sends SMS or changes configuration.
-Saved and applied state remain distinct; the global indicator survives reloads.
-Delivery labels distinguish SIP delivery from carrier confirmation.
-
-See [the product model and design rationale](docs/experience-design.md).
+See [the UI design](docs/experience-design.md).
 
 ## Routing
 
