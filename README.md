@@ -95,6 +95,8 @@ RELEASE_TAG=v1.0.0 docker compose -f compose.release.yaml up -d --wait
 
 **导入会覆盖 Linphone 的首个账户及其认证信息。** 建议在新安装的客户端中使用，已有账户时请先确认。服务器支持该配置格式；不同 Linphone 版本的实际扫码、注册和通话仍需客户端验收。格式依据见 [Linphone 远程配置文档](https://wiki.linphone.org/xwiki/wiki/public/view/Linphone/Remote%20Provisioning/)。
 
+Linphone 后台来电支持通过官方 REST 服务唤醒手机，并等待重新注册后投递匹配 Call-ID 的来电。平台管理员可在“服务器设置 → Linphone 推送服务”配置、获取和验证 API key。官方账户注册、密钥申请、手机设置及常见错误见[后台来电推送](docs/linphone-push.md)。
+
 ## 开源与贡献
 
 SIP Gateway Manager 采用 [GNU GPL v3 许可证](LICENSE)。贡献方式见[贡献指南](CONTRIBUTING.md)。许可证正文保留官方英文原文。

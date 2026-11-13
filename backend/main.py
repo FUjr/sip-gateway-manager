@@ -26,6 +26,11 @@ admin = install(app, store)
 from .linphone import install as install_linphone
 install_linphone(app, store, DATA)
 
+# Called only by the local Unix socket bridge. Never mounted on the public ASGI app.
+internal = FastAPI(docs_url=None, redoc_url=None)
+from .push import install as install_push, Registration
+push = install_push(app, internal, store, DATA, admin)
+
 @app.get('/api/v1/health')
 def health():
     if os.getenv('PBX_MANAGED') == '1':
@@ -245,9 +250,6 @@ def retry(identity: str):
         db.execute("UPDATE jobs SET status='pending',next=?,updated=? WHERE id=? AND status IN ('failed','pending') AND message_id IN (SELECT id FROM messages WHERE expires>? AND body IS NOT NULL)", (time.time(),time.time(),identity,time.time()))
     return {'ok': True}
 
-# Called only by the local Unix socket bridge. Never mounted on the public ASGI app.
-internal = FastAPI(docs_url=None, redoc_url=None)
-
 @internal.post('/ingest')
 def ingest(message: Ingest):
     now = time.time()
@@ -286,7 +288,8 @@ def complete(completion: Completion):
     return {'ok': True}
 
 @internal.post('/registered/{account}')
-def registered(account: str):
+def registered(account: str, body: Registration = Registration()):
+    push.registered(account, body)
     with store.transaction() as db:
         db.execute("UPDATE jobs SET next=? WHERE target=? AND status='pending'", (time.time(),account))
     return {'ok': True}
@@ -373,4 +376,6 @@ def voice_resolve(body: dict):
         return {'dial':''}
     targets=resolve(conf,source,number,'voice',caller=body.get('caller',''))
     targets=[t for t in targets if store.live_account(t)]
-    return {'dial':'&'.join('PJSIP/'+t if account['kind']=='device' or accounts[t]['kind']=='client' else 'PJSIP/'+number+'@'+t for t in targets)}
+    return {'dial':'&'.join('Local/'+t+'@gateway-wake/n' if accounts[t]['kind']=='client' and push.binding(t)
+        else 'PJSIP/'+t if account['kind']=='device' or accounts[t]['kind']=='client'
+        else 'PJSIP/'+number+'@'+t for t in targets)}

@@ -61,6 +61,18 @@ send_pai=yes
     dialplan='[general]\nstatic=yes\nwriteprotect=yes\n'
     for a in config['accounts']:
         dialplan+=f"\n[managed-{a['id']}]\nexten => _.,1,GatewayRoute({a['id']})\nsame => n,GotoIf($[\"${{GATEWAY_DIAL}}\" = \"\"]?blocked)\nsame => n,Dial(${{GATEWAY_DIAL}},45)\nsame => n,Hangup()\nsame => n(blocked),Hangup(21)\n"
+    dialplan += '''
+[gateway-wake]
+exten => _.,1,GatewayWake(${EXTEN})
+same => n,GotoIf($["${GATEWAY_READY}" = "1"]?ready)
+same => n,Hangup(20)
+same => n(ready),Dial(PJSIP/${EXTEN},45,b(gateway-push-id^s^1))
+same => n,Hangup()
+exten => h,1,NoOp()
+[gateway-push-id]
+exten => s,1,GatewayPushID()
+same => n,Return()
+'''
     return {'pjsip.conf': pjsip, 'extensions.conf': dialplan,
             'rtp.conf': f"[general]\nrtpstart={s['rtp_start']}\nrtpend={s['rtp_end']}\n",
             'asterisk.conf': '[directories]\nastetcdir=/etc/asterisk\nastmoddir=/usr/lib/asterisk/modules\nastvarlibdir=/var/lib/asterisk\nastspooldir=/var/spool/asterisk\nastrundir=/var/run/asterisk\nastlogdir=/var/log/asterisk\n[options]\nrunuser=asterisk\nrungroup=asterisk\n',

@@ -17,7 +17,8 @@ PORT=int(os.getenv('SIP_TEST_PORT','15061'))
 WEB=os.getenv('WEB_TEST_URL','https://localhost:28443')
 
 class SIP:
-    def __init__(self,username):
+    def __init__(self,username,contact_params=""):
+        self.contact_params=contact_params
         self.username=username;self.cseq=0;self.pending={};self.messages=[];self.calls=[];self.offers=[];self.ends=[]
         self.udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);self.udp.bind(('0.0.0.0',0));self.udp.setblocking(False)
         self.audio_port=self.udp.getsockname()[1]
@@ -65,7 +66,7 @@ class SIP:
             port=self.writer.get_extra_info('sockname')[1]
             headers=(f'{method} {uri} SIP/2.0\r\nVia: SIP/2.0/TLS 127.0.0.1:{port};branch=z9hG4bK{secrets.token_hex(10)};rport\r\n'
                      f'Max-Forwards: 70\r\nFrom: <sips:{self.username}@sip.test>;tag={identity}\r\nTo: <{to_uri}>\r\n'
-                     f'Call-ID: {identity}\r\nCSeq: {key}\r\nContact: <sips:{self.username}@127.0.0.1:{port};transport=tls>\r\n'
+                     f'Call-ID: {identity}\r\nCSeq: {key}\r\nContact: <sips:{self.username}@127.0.0.1:{port}{self.contact_params};transport=tls>\r\n'
                      f'Expires: {expires}\r\n{auth}{extra}')
             if delivery:headers+=f'X-Gateway-Delivery-ID: {delivery}\r\n'
             if body:headers+='Content-Type: '+('application/sdp' if method=='INVITE' else 'text/plain; charset=utf-8')+'\r\n'

@@ -1132,5 +1132,189 @@
   "撤销配置链接": {
     "en": "Revoke provisioning link",
     "zh-TW": "撤銷設定連結"
+  },
+  "后台来电推送": {
+    "en": "Background incoming calls",
+    "zh-TW": "背景來電推送"
+  },
+  "服务器尚未配置推送服务": {
+    "en": "Push service is not configured on the server",
+    "zh-TW": "伺服器尚未設定推送服務"
+  },
+  "已收到手机推送参数，可尝试锁屏来电": {
+    "en": "Device push details received; test a call with the screen locked",
+    "zh-TW": "已收到手機推送參數，可嘗試鎖定螢幕來電"
+  },
+  "等待手机注册并上报推送参数": {
+    "en": "Waiting for the phone to register with push details",
+    "zh-TW": "等待手機註冊並上報推送參數"
+  },
+  "在手机上允许 Linphone 通知，并启用账户的推送通知。重新导入配置或重新注册后刷新状态。": {
+    "en": "Allow Linphone notifications on your phone and enable push notifications for the account. Refresh this status after importing the configuration again or registering again.",
+    "zh-TW": "在手機上允許 Linphone 通知，並啟用帳戶的推送通知。重新匯入設定或重新註冊後重新整理狀態。"
+  },
+  "最近推送已被服务接受，手机响铃仍需实测": {
+    "en": "The service accepted the latest push; ringing still needs a device test",
+    "zh-TW": "最近推送已被服務接受，手機響鈴仍需實測"
+  },
+  "正在发送推送": {
+    "en": "Sending push notification",
+    "zh-TW": "正在傳送推送"
+  },
+  "最近推送未成功，请检查服务器配置": {
+    "en": "The latest push failed; check the server configuration",
+    "zh-TW": "最近推送未成功，請檢查伺服器設定"
+  },
+  "刷新推送状态": {
+    "en": "Refresh push status",
+    "zh-TW": "重新整理推送狀態"
+  },
+  "Linphone 推送服务": {
+    "en": "Linphone push service",
+    "zh-TW": "Linphone 推送服務"
+  },
+  "供所有租户共用，保存后立即生效，无需应用电话路由。密钥和密码不会回显。": {
+    "en": "Shared by all tenants. Saving takes effect immediately. Keys and passwords are never displayed.",
+    "zh-TW": "供所有租戶共用，儲存後立即生效，無需套用電話路由。金鑰和密碼不會回顯。"
+  },
+  "启用后台来电推送": {
+    "en": "Enable incoming call push",
+    "zh-TW": "啟用背景來電推送"
+  },
+  "推送服务地址": {
+    "en": "Push service URL",
+    "zh-TW": "推送服務位址"
+  },
+  "Linphone 官方 SIP 地址": {
+    "en": "Official Linphone SIP address",
+    "zh-TW": "Linphone 官方 SIP 位址"
+  },
+  "已保存，留空保留": {
+    "en": "Saved; leave blank to keep",
+    "zh-TW": "已儲存，留空保留"
+  },
+  "尚未配置": {
+    "en": "Not configured",
+    "zh-TW": "尚未設定"
+  },
+  "由服务器获取密钥与自动续期": {
+    "en": "Server key generation and renewal",
+    "zh-TW": "由伺服器取得金鑰與自動續期"
+  },
+  "填写已激活的 Linphone 官方账户，保存后点击获取密钥。请求从本服务器发出，密码用于获取密钥和失效后的自动续期。": {
+    "en": "Enter an activated Linphone account, save, then generate a key. Requests originate from this server. The password is used for key generation and renewal.",
+    "zh-TW": "填寫已啟用的 Linphone 官方帳戶，儲存後點擊取得金鑰。請求從本伺服器發出，密碼用於取得金鑰和失效後的自動續期。"
+  },
+  "Linphone 官方用户名": {
+    "en": "Official Linphone username",
+    "zh-TW": "Linphone 官方使用者名稱"
+  },
+  "Linphone 官方密码": {
+    "en": "Official Linphone password",
+    "zh-TW": "Linphone 官方密碼"
+  },
+  "清除官方账户凭据，仅使用 API key": {
+    "en": "Remove account credentials and use only the API key",
+    "zh-TW": "清除官方帳戶憑證，僅使用 API key"
+  },
+  "留空保留已有密钥和密码；更换服务或官方 SIP 地址后需重新提供。修改后请先保存。": {
+    "en": "Leave secrets blank to keep them. Changing the service or SIP address requires new secrets. Save changes before checking or generating a key.",
+    "zh-TW": "留空保留既有金鑰和密碼；更換服務或官方 SIP 位址後需重新提供。修改後請先儲存。"
+  },
+  "保存推送配置": {
+    "en": "Save push configuration",
+    "zh-TW": "儲存推送設定"
+  },
+  "从服务器获取 API key": {
+    "en": "Generate API key from server",
+    "zh-TW": "從伺服器取得 API key"
+  },
+  "验证 API key": {
+    "en": "Check API key",
+    "zh-TW": "驗證 API key"
+  },
+  "API key 申请与配置说明": {
+    "en": "API key registration and configuration guide",
+    "zh-TW": "API key 申請與設定說明"
+  },
+  "在 Linphone 官方网站注册账户并完成邮箱激活。此账户用于推送，与本系统的 SIP 分机账户不同。": {
+    "en": "Register on the official Linphone website and activate your email. This push service account is separate from your SIP extension account.",
+    "zh-TW": "在 Linphone 官方網站註冊帳戶並完成信箱啟用。此帳戶用於推送，與本系統的 SIP 分機帳戶不同。"
+  },
+  "注册 Linphone 账户": {
+    "en": "Register a Linphone account",
+    "zh-TW": "註冊 Linphone 帳戶"
+  },
+  "选择账户所属服务，填写其官方 SIP 地址。推荐填写官方用户名和密码，保存后从服务器获取 API key；也可手动填写已从相同出口 IP 获取的密钥。": {
+    "en": "Select the account's service and enter its SIP address. Save your official credentials and generate a key from this server, or enter a key generated from the same outbound IP.",
+    "zh-TW": "選擇帳戶所屬服務，填寫其官方 SIP 位址。建議填寫官方使用者名稱和密碼，儲存後從伺服器取得 API key；也可手動填寫已從相同出口 IP 取得的金鑰。"
+  },
+  "用户级密钥绑定生成时的出口 IP，不能直接使用在个人电脑上生成的密钥。获取新密钥可能替换旧密钥，请勿与其他服务器共用账户。": {
+    "en": "User keys are bound to the IP that generated them. A key generated on your computer will not work from this server. A new key may replace the old one; use a separate service account per server.",
+    "zh-TW": "使用者金鑰綁定產生時的出口 IP，不能直接使用在個人電腦上產生的金鑰。取得新金鑰可能取代舊金鑰，請勿與其他伺服器共用帳戶。"
+  },
+  "验证成功仅表示账户 API 可访问。手机需允许通知并启用推送、重新注册，再通过锁屏来电确认。": {
+    "en": "A successful check confirms API access. Allow notifications, enable push and re-register on the phone, then test a call with the screen locked.",
+    "zh-TW": "驗證成功僅表示帳戶 API 可存取。手機需允許通知並啟用推送、重新註冊，再透過鎖定螢幕來電確認。"
+  },
+  "注册和取得密钥不代表无限免费推送，服务权限、配额及费用以运营方为准。SIP 和语音仍连接自己的服务器。": {
+    "en": "Registration and a key do not guarantee unlimited free push. Permissions, quotas and fees depend on the provider. SIP and audio connect to your own server.",
+    "zh-TW": "註冊和取得金鑰不代表無限免費推送，服務權限、配額及費用以營運方為準。SIP 和語音仍連接自己的伺服器。"
+  },
+  "官方 API 文档": {
+    "en": "Official API documentation",
+    "zh-TW": "官方 API 文件"
+  },
+  "无法读取推送配置，请刷新页面重试": {
+    "en": "Could not load push configuration. Refresh to retry.",
+    "zh-TW": "無法讀取推送設定，請重新整理頁面重試"
+  },
+  "推送配置已保存，下一次来电生效": {
+    "en": "Push configuration saved for the next call",
+    "zh-TW": "推送設定已儲存，下次來電生效"
+  },
+  "密钥验证成功，锁屏来电仍需实测": {
+    "en": "API key verified; test an actual locked-screen call",
+    "zh-TW": "金鑰驗證成功，鎖定螢幕來電仍需實測"
+  },
+  "验证失败，请检查账户、密钥和服务器网络": {
+    "en": "Verification failed. Check the account, key and server connection.",
+    "zh-TW": "驗證失敗，請檢查帳戶、金鑰和伺服器網路"
+  },
+  "不支持的推送服务地址": {
+    "en": "Unsupported push service URL",
+    "zh-TW": "不支援的推送服務位址"
+  },
+  "请填写有效的官方 SIP 地址": {
+    "en": "Enter a valid official SIP address",
+    "zh-TW": "請填寫有效的官方 SIP 位址"
+  },
+  "API key 格式不正确": {
+    "en": "Invalid API key format",
+    "zh-TW": "API key 格式不正確"
+  },
+  "官方账户凭据格式不正确": {
+    "en": "Invalid service account credentials",
+    "zh-TW": "官方帳戶憑證格式不正確"
+  },
+  "请同时填写官方用户名和密码": {
+    "en": "Enter both the service username and password",
+    "zh-TW": "請同時填寫官方使用者名稱和密碼"
+  },
+  "请填写 API key 或官方账户凭据": {
+    "en": "Enter an API key or service account credentials",
+    "zh-TW": "請填寫 API key 或官方帳戶憑證"
+  },
+  "请先启用并保存推送配置": {
+    "en": "Enable and save push configuration first",
+    "zh-TW": "請先啟用並儲存推送設定"
+  },
+  "请先保存官方账户凭据": {
+    "en": "Save service account credentials first",
+    "zh-TW": "請先儲存官方帳戶憑證"
+  },
+  "请先获取或保存 API key": {
+    "en": "Generate or save an API key first",
+    "zh-TW": "請先取得或儲存 API key"
   }
 }

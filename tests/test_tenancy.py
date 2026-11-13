@@ -47,6 +47,8 @@ def test_resource_isolation_and_independent_publish(server):
     one=account(a,owner);two=account(b,other)
     assert {x['id'] for x in a.get('/api/v1/config').json()['accounts']}=={one}
     assert b.get('/api/v1/accounts/'+one+'/provision').status_code==404
+    assert b.get('/api/v1/accounts/'+one+'/push').status_code==404
+    assert a.get('/api/v1/accounts/'+one+'/push').status_code==200
     assert b.put('/api/v1/groups/forged',json={'id':'forged','name':'forged','members':[one]}).status_code==422
     assert a.post('/api/v1/apply').status_code==200
     assert [x['id'] for x in m.store.aggregate()['accounts']]==[one]

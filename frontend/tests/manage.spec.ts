@@ -185,6 +185,7 @@ test.beforeEach(async ({ page }, info) => {
         admin: 1,
         timezone: "Asia/Shanghai",
       });
+    if (path === "accounts/phone/push") return send({ configured: false, device_registered: false, last_attempt: null });
     if (path === "accounts/phone/linphone") {
       if (req.method() === "DELETE") return send({ ok: true });
       return send({ path: "/api/v1/linphone/" + (++provisioning) + ".xml", expires: Date.now() / 1000 + 600 });
@@ -556,4 +557,54 @@ test("Linphone QR provisioning generates, rotates and revokes a link on mobile",
   await expect(page.getByLabel("配置链接", { exact: true })).toHaveValue(/\/2\.xml$/);
   await page.getByRole("button", { name: "撤销配置链接" }).click();
   await expect(page.locator(".linphone-export")).toHaveCount(0);
+});
+
+test("Linphone push status distinguishes missing device details from accepted delivery", async ({ page }) => {
+  let ready = false;
+  await page.route("**/api/v1/accounts/phone/push", route => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ configured: true, device_registered: ready,
+      last_attempt: ready ? { status: "accepted", code: 204 } : null }),
+  }));
+  await page.locator(".resource-row").filter({ hasText: "我的手机" })
+    .getByRole("button", { name: "连接配置", exact: true }).click();
+  await expect(page.getByText("等待手机注册并上报推送参数", { exact: true })).toBeVisible();
+  ready = true;
+  await page.getByRole("button", { name: "刷新推送状态", exact: true }).click();
+  await expect(page.getByText("已收到手机推送参数，可尝试锁屏来电", { exact: true })).toBeVisible();
+  await expect(page.getByText(/最近推送已被服务接受，手机响铃仍需实测/)).toBeVisible();
+});
+
+test("Linphone admin push configuration keeps secrets write-only and checks server key", async ({ page }) => {
+  let stored = { enabled: true, api_url: "https://subscribe.linphone.org/api", from_address: "sip:example@sip.linphone.org",
+    username: "example", has_api_key: true, has_password: true };
+  let saved: any;
+  await page.route("**/api/v1/platform/linphone-push**", route => {
+    const request = route.request();
+    if (request.method() === "PUT") {
+      saved = request.postDataJSON();
+      stored = { ...stored, enabled: saved.enabled, has_password: !saved.clear_credentials };
+    }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...stored, ok: true, code: 200 }) });
+  });
+  await page.getByRole("navigation").getByRole("button", { name: "服务器设置", exact: true }).click();
+  const panel = page.getByRole("region", { name: "Linphone 推送服务" });
+  await expect(panel.getByLabel("API key", { exact: true })).toHaveValue("");
+  await panel.getByText("由服务器获取密钥与自动续期", { exact: true }).click();
+  await expect(panel.getByLabel("Linphone 官方密码", { exact: true })).toHaveValue("");
+  await panel.getByLabel("API key", { exact: true }).fill("replacement-test-key-123456789");
+  await expect(panel.getByRole("button", { name: "验证 API key", exact: true })).toBeDisabled();
+  await panel.getByRole("button", { name: "保存推送配置", exact: true }).click();
+  await expect(panel.getByRole("status")).toContainText("推送配置已保存");
+  expect(saved.api_key).toBe("replacement-test-key-123456789");
+  expect(saved.password).toBe("");
+  await expect(panel.getByLabel("API key", { exact: true })).toHaveValue("");
+  await panel.getByRole("button", { name: "从服务器获取 API key", exact: true }).click();
+  await expect(panel.getByRole("status")).toContainText("HTTP 200");
+  await panel.getByRole("button", { name: "验证 API key", exact: true }).click();
+  await expect(panel.getByRole("status")).toContainText("密钥验证成功");
+  await panel.getByText("API key 申请与配置说明", { exact: true }).click();
+  await expect(panel.getByRole("link", { name: "注册 Linphone 账户", exact: true })).toHaveAttribute("href", "https://subscribe.linphone.org/register");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

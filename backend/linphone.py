@@ -88,10 +88,13 @@ def install(app, store, data):
         sections = {
             'misc': {'transient_provisioning': '1'},
             'sip': {'default_proxy': '0'},
+            'net': {'push_notification': '1'},
             'auth_info_0': {'username': account['id'], 'userid': account['id'],
                             'passwd': account['password'], 'realm': settings['realm'], 'domain': host},
             'proxy_0': {'reg_identity': f"sip:{account['id']}@{host}", 'reg_proxy': server,
                         'reg_route': server, 'reg_sendregister': '1',
+                        'push_notification_allowed': '1', 'remote_push_notification_allowed': '1',
+                        'force_register_on_push': '1',
                         'reg_expires': str(settings['register_interval']), 'publish': '0'},
         }
         for name, entries in sections.items():

@@ -1,6 +1,7 @@
 import { t, LanguageSwitcher, useLocale } from "./i18n";
 import { Rules } from "./rules";
 import { LinphoneImport } from "./linphone";
+import { PushSettings } from "./push";
 import { TenantPanel, ScheduleEditor } from "./tenant";
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -56,6 +57,16 @@ async function api(path: string, method = "GET", body?: unknown) {
           : t("登录已过期，请刷新页面重新登录。");
     if (typeof error !== "string") error = JSON.stringify(error);
     const translations: Record<string, string> = {
+      "Unsupported push service URL": t("不支持的推送服务地址"),
+      "Invalid push sender address": t("请填写有效的官方 SIP 地址"),
+      "Invalid push API key": t("API key 格式不正确"),
+      "Invalid push credentials": t("官方账户凭据格式不正确"),
+      "Push username and password are required together": t("请同时填写官方用户名和密码"),
+      "Push API key or credentials are required": t("请填写 API key 或官方账户凭据"),
+      "Enable and save push configuration first": t("请先启用并保存推送配置"),
+      "Save push credentials first": t("请先保存官方账户凭据"),
+      "Generate or save a push API key first": t("请先获取或保存 API key"),
+
       "invalid weekdays": t("无效的星期设置"),
       "extensions must be unique": t("分机号已被使用，请换一个。"),
       "device account needs a physical device": t(
@@ -930,6 +941,7 @@ function App() {
             </form>
           </section>
         )}
+        {tab === "settings" && user.admin && <PushSettings api={api} run={run} />}
         {provision && (
           <section className="panel" id="configuration-editor">
             <h2>{t("设备配置")}</h2>
