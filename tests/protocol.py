@@ -145,6 +145,9 @@ async def main():
         for peer in (modem,modem2,alice,bob):
             result=await peer.request('REGISTER');assert result[0]==200,(peer.username,result[0])
         await alice.call('201',media_peer=bob)
+        assert re.search(r'<sips?:200@',bob.calls[-1]['from']),bob.calls[-1]['from']
+        await bob.call('200',media_peer=alice)
+        assert re.search(r'<sips?:201@',alice.calls[-1]['from']),alice.calls[-1]['from']
         assert bob.calls
         await alice.call('123456')
         assert modem.calls

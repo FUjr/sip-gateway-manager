@@ -270,6 +270,7 @@ def test_linphone_export_lifecycle_and_xml(gateway):
     def value(section,key):
         return root.find(f"c:section[@name='{section}']/c:entry[@name='{key}']",ns).text
     assert value('auth_info_0','username')=='alice'
+    assert value('proxy_0','reg_identity')=='"200" <sip:alice@sip.example.com>'
     assert value('auth_info_0','passwd')=='abcdefghijklmnop'
     assert value('proxy_0','reg_proxy').endswith(';transport=tls')
     assert value('misc','transient_provisioning')=='1'
@@ -302,3 +303,15 @@ def test_linphone_access_logs_redact_bearer_path():
         ('127.0.0.1','GET','/api/v1/linphone/synthetic-token.xml','1.1',200),None)
     assert RedactProvisioning().filter(record)
     assert 'synthetic-token' not in record.getMessage()
+
+
+def test_client_caller_identity_is_numeric_and_cellular_identity_preserved(gateway):
+    from backend.render import render
+    m,client=gateway;setup(client)
+    assert client.post('/api/v1/apply').status_code==200
+    import json
+    output=render(json.loads((m.DATA/'applied-config.json').read_text()))['pjsip.conf']
+    assert 'callerid=200 <200>' in output
+    assert 'callerid=201 <201>' in output
+    assert output.count('trust_id_inbound=no')==2
+    assert output.count('trust_id_inbound=yes')==2

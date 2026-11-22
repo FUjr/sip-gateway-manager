@@ -55,7 +55,8 @@ direct_media=no
 rtp_symmetric=yes
 force_rport=yes
 rewrite_contact=yes
-trust_id_inbound=yes
+trust_id_inbound={'yes' if a['kind']=='device' else 'no'}
+{('callerid='+a['extension']+' <'+a['extension']+'>') if a['kind']=='client' else ''}
 send_pai=yes
 '''
     dialplan='[general]\nstatic=yes\nwriteprotect=yes\n'

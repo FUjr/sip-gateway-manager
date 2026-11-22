@@ -91,7 +91,7 @@ def install(app, store, data):
             'net': {'push_notification': '1'},
             'auth_info_0': {'username': account['id'], 'userid': account['id'],
                             'passwd': account['password'], 'realm': settings['realm'], 'domain': host},
-            'proxy_0': {'reg_identity': f"sip:{account['id']}@{host}", 'reg_proxy': server,
+            'proxy_0': {'reg_identity': f'"{account["extension"]}" <sip:{account["id"]}@{host}>', 'reg_proxy': server,
                         'reg_route': server, 'reg_sendregister': '1',
                         'push_notification_allowed': '1', 'remote_push_notification_allowed': '1',
                         'force_register_on_push': '1',
